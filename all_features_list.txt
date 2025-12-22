@@ -1,0 +1,188 @@
+identity_line_item_id (Identifier)
+identity_time_interval (Datetime)
+bill_invoice_id (Identifier)
+bill_invoicing_entity
+bill_billing_entity
+bill_bill_type (Category)
+bill_payer_account_id (Identifier)
+bill_billing_period_start_date (Datetime)
+bill_billing_period_end_date (Datetime)
+line_item_usage_account_id (Identifier)
+line_item_line_item_type (Category)
+line_item_usage_start_date (Datetime)
+line_item_usage_end_date (Datetime)
+line_item_product_code (Code)
+line_item_usage_type (Category)
+line_item_operation
+line_item_availability_zone (Region/Zone)
+line_item_resource_id (Identifier)
+line_item_usage_amount (Units/Hours)
+line_item_normalization_factor
+line_item_normalized_usage_amount (Units/Hours)
+line_item_currency_code (Code)
+line_item_unblended_rate (USD per unit)
+line_item_unblended_cost (USD)
+line_item_blended_rate (USD per unit)
+line_item_blended_cost (USD)
+line_item_line_item_description (Text)
+line_item_tax_type (Category)
+line_item_legal_entity
+product_product_name (Text)
+product_purchase_option
+product_alarm_type (Category)
+product_availability
+product_availability_zone (Region/Zone)
+product_backupservice
+product_capacitystatus
+product_classicnetworkingsupport
+product_clock_speed
+product_cloudformationresource_provider (Identifier)
+product_content_type (Category)
+product_current_generation
+product_database_engine
+product_datatransferout
+product_dedicated_ebs_throughput
+product_deployment_option
+product_description (Text)
+product_durability
+product_ecu
+product_edition
+product_endpoint_type (Category)
+product_engine_code (Code)
+product_engine_major_version
+product_enhanced_networking_supported
+product_equivalentondemandsku
+product_extended_support_pricing_year
+product_fee_code (Code)
+product_fee_description (Text)
+product_free_query_types (Category)
+product_from_location
+product_from_location_type (Category)
+product_from_region_code (Code)
+product_gpu
+product_gpu_memory
+product_group
+product_group_description (Text)
+product_instance
+product_instance_family
+product_instance_type (Category)
+product_instance_type_family (Category)
+product_intel_avx2_available
+product_intel_avx_available
+product_intel_turbo_available
+product_license_model
+product_location
+product_location_type (Category)
+product_logs_destination
+product_marketoption
+product_max_iops_burst_performance
+product_max_iopsvolume
+product_max_throughputvolume
+product_max_volume_size
+product_memory
+product_message_delivery_frequency
+product_message_delivery_order
+product_min_volume_size
+product_network_performance
+product_normalization_size_factor
+product_operating_system
+product_operation
+product_origin
+product_overhead
+product_pack_size
+product_physical_processor
+product_platoclassificationtype (Category)
+product_pre_installed_sw
+product_processor_architecture
+product_processor_features
+product_product_family
+product_provisioned
+product_purchaseterm
+product_q_present
+product_queue_type (Category)
+product_recipient
+product_region (Region/Zone)
+product_region_code (Code)
+product_request_description (Text)
+product_request_type (Category)
+product_servicecode (Code)
+product_servicename (Text)
+product_sku
+product_snapshotarchivefeetype (Category)
+product_storage
+product_storage_class
+product_storage_media
+product_storage_type (Category)
+product_subscription_type (Category)
+product_tenancy
+product_to_location
+product_to_location_type (Category)
+product_to_region_code (Code)
+product_transfer_type (Category)
+product_usage_group
+product_usagetype (Category)
+product_vaulttype (Category)
+product_vcpu
+product_version
+product_volume_api_name (Text)
+product_volume_type (Category)
+product_vpcnetworkingsupport
+pricing_lease_contract_length
+pricing_offering_class
+pricing_purchase_option
+pricing_rate_code (USD per unit)
+pricing_rate_id (USD per unit)
+pricing_currency
+pricing_public_on_demand_cost (USD)
+pricing_public_on_demand_rate (USD per unit)
+pricing_term
+pricing_unit
+reservation_amortized_upfront_cost_for_usage (USD)
+reservation_amortized_upfront_fee_for_billing_period
+reservation_effective_cost (USD)
+reservation_end_time (Datetime)
+reservation_modification_status
+reservation_normalized_units_per_reservation
+reservation_number_of_reservations
+reservation_recurring_fee_for_usage
+reservation_start_time (Datetime)
+reservation_subscription_id (Identifier)
+reservation_total_reserved_normalized_units
+reservation_total_reserved_units
+reservation_units_per_reservation
+reservation_unused_amortized_upfront_fee_for_billing_period
+reservation_unused_normalized_unit_quantity
+reservation_unused_quantity
+reservation_unused_recurring_fee
+reservation_upfront_value
+savings_plan_total_commitment_to_date (Datetime)
+savings_plan_savings_plan_a_r_n
+savings_plan_savings_plan_rate (USD per unit)
+savings_plan_used_commitment
+savings_plan_savings_plan_effective_cost (USD)
+savings_plan_amortized_upfront_commitment_for_billing_period
+savings_plan_recurring_commitment_for_billing_period
+savings_plan_start_time (Datetime)
+savings_plan_end_time (Datetime)
+savings_plan_instance_type_family (Category)
+savings_plan_offering_type (Category)
+savings_plan_payment_option
+savings_plan_purchase_term
+savings_plan_region (Region/Zone)
+resource_tags_user_2024
+resource_tags_user_backup
+resource_tags_user_customer
+resource_tags_user_managed_by_amazon_sage_maker_resource
+resource_tags_user_name (Text)
+resource_tags_user_project
+resource_tags_user_project_owner
+resource_tags_user_s_t_a_g_e
+resource_tags_user_service
+resource_tags_user_tahun
+resource_tags_user_tech_owner
+resource_tags_user_devops_guru_default
+resource_tags_user_dlm_managed
+resource_tags_user_sagemaker_domain_arn
+resource_tags_user_sagemaker_user_profile_arn
+year
+month

@@ -1,0 +1,211 @@
+catatan cleaning
+
+PHASE 1 18 DES 2025
+asumsi kuat yang akan di drop fiturnya
+1) product_vpcnetworkingsupport -> karena isi tipe valuenya cuma True aja
+2) identity_line_item_id -> karena id, ga bermakna dan ga jelas
+3) bill_invoicing_entity -> 1 tipe values, AWS aja
+4) bill_billing_entity -> 1 tipe values, AWS aja
+5) bill_bill_type -> 1 tipe values, Anniversary aja
+6) bill_payer_account_id -> 1 tipe values, 1 account aja
+7) bill_billing_period_start_date -> 1 tipe values, 2025-02-01 00:00:00.000 saja isi valuenya
+8) bill_billing_period_end_date -> 1 tipe values, 2025-03-01 00:00:00.000 saja isi valuesnya
+9) line_item_usage_account_id -> 1 tipe values, 22159271696 saja isi valuesnya
+10) line_item_resource_id -> id yang ga perlu dipahami dan di train ML
+11) line_item_currency_code -> semuanya USD currencynya
+12) line_item_line_item_description -> deskripsinya pelayanannya yang terlalu detail, sudah bisa diwakilkan dgn tema servis yg ada
+13) line_item_tax_type -> 1 tipe values doang "VAT"
+14) line_item_legal_entity -> 1 tipe values doang "Amazon Web Services, Inc."
+15) product_purchase_option -> 1 tipe values doang "No Upfront"
+16) product_alarm_type -> 1 values doang "Standard"
+17) product_availability -> tipe2 values yang dalam persen yang tidak memiliki makna dan korelasi dgn target var kecil. bukti di notebook test1a
+18) product_availability_zone -> ga memiliki makna jelas, contoh isinya cuma "apse1-az2" dan "apse1-az1"
+19) product_backupservice -> isinya dikit bgt cuma 15 dan cuma 1 tipe values
+20) product_capacitystatus -> 1 tipe values doang yaitu "Used"
+21) product_classicnetworkingsupport -> datanya sedikit, merepresentasikan legacy feature (expired) yang useless, ga berguna karena bisa diketahui dari fitur-fitur lain, noise besar
+22) product_cloudformationresource_provider -> 1 tipe value aja "CFN-Resource-Operation" dan cuma 39 aja isinya
+23) product_content_type -> 1 tipe value aja "Meessage Body"
+24) product_current_generation -> too many NaN values (1198521 from 1343347)
+25) product_database_engine -> too many NaN values (1329252 from 1343347)
+26) product_dedicated_ebs_throughput -> too many NaN values (1204283 from 1343347)
+27) product_deployment_option -> too many NaN values (1330000 from 1343347)
+28) product_description -> too many NaN values (1338362 from 1343347)
+29 product_durability -> too many NaN values (1340910 from 1343347)
+30) product_ecu -> too many NaN values (1323213 from 1343347)
+31) product_edition -> too many NaN values (1342972 from 1343347)
+32) product_endpoint_type -> too many NaN values (1340282 from 1343347)
+33) product_engine_code -> too many NaN values (1329252 from 1343347)
+34) product_engine_major_version -> too many NaN values (1342973 from 1343347)
+35) product_enhanced_networking_supported -> too many NaN values (1201601 from 1343347)
+36) product_equivalentondemandsku -> too many NaN values (1336314 from 1343347)
+37) product_extended_support_pricing_year -> too many NaN values (1342973 from1343347)
+38) product_fee_code -> too many NaN values (1340882 from 1343347)
+39) product_fee_description -> too many NaN values (1340882 from 1343347)
+40) product_free_query_types -> too many NaN values (1343344 from 1343347)
+41) product_from_location_type -> redundan terhadap product_from_location (kayak cuma penjelasan yg lebih detail tp ga terlalu berguna) yang menyebabkan multicolinearity
+42) product_from_region_code -> informasi yang kurang detail, too many NaN values, redundansi terhadap product_from_location
+43) product_gpu -> too many NaN values (1343011 from 1343347)
+44) product_gpu_memory -> too many NaN values(1343011 from 1343347)
+45) product_group -> too many NaN values(1019673 from 1343347)
+46) product_group_description -> too many NaN values(1020092 from 1343347)
+47) product_instance -> too many NaN values(1343344 from 1343347)
+48) product_instance_family -> too many NaN values(1198521 from 1343347)
+49) product_instance_type -> too many NaN values(1198521 from 1343347)
+50) product_instance_type_family -> too many NaN values(1257802 from 1343347)
+51) product_intel_avx2_available -> too many NaN values(1201601 from 1343347)
+52) product_intel_avx_available -> too many NaN values (1201601 from 1343347)
+53) product_intel_turbo_available -> too many NaN values (1201601 from 1343347)
+54) product_license_model -> too many NaN values (1257802 from 1343347)
+54) product_location -> redundant location
+55) product_location_type -> redundant location
+56) product_logs_destination -> too many NaN values (1342139 from 1343347)
+57) product_marketoption -> too many NaN values (1201601 from 1343347)
+58) product_max_iops_burst_performance -> too many NaN values (1212938 from 1343347)
+59) product_max_iopsvolume -> too many NaN values (1159844 from 1343347)
+60) product_max_throughputvolume -> too many NaN values (1159469 from 1343347)
+61) product_max_volume_size -> too many NaN values (1150860 from 1343347)
+62) product_memory -> too many NaN values (1198521 from 1343347)
+63) product_message_delivery_frequency -> too many NaN values (1340036 from 1343347)
+64) product_message_delivery_order -> too many NaN values (1340036 from 1343347)
+65) product_min_volume_size ->too many NaN values (1334363 from 1343347)
+66) product_network_performance -> too many NaN values (1198521 from 1343347)
+67) product_normalization_size_factor -> too many NaN values (1198521 from 1343347)
+68) product_operating_system -> too many NaN values (1260879 from 1343347)
+69) product_operation -> too many NaN values (1165864 from 1343347)
+70) product_origin -> too many NaN values (1341849 from 1343347)
+71) product_overhead -> too many NaN values (1343315 from 1343347)
+72) product_pack_size -> too many NaN values (1342972 from 1343347)
+73) product_physical_processor -> too many NaN values (1198521 from 1343347)
+74) product_platoclassificationtype -> too many NaN values (1342972 from 1343347)
+75) product_pre_installed_sw -> too many NaN values (1343347 from 1343347)
+76) product_processor_architecture -> too many NaN values (1198521 from 1343347)
+77) product_processor_features -> too many NaN values (1207814 from 1343347)
+78) product_provisioned -> too many NaN values (1181830 from 1343347)
+79) product_purchaseterm -> too many NaN values (1335955 from 1343347)
+80) product_q_present -> too many NaN values (1342972 from 1343347)
+81) product_queue_type -> too many NaN values (1340036 from 1343347)
+82) product_recipient -> too many NaN values (1341849 from 1343347)
+83) product_region_code -> redundant to product_region
+84) product_request_description -> too many NaN values (1323494 from 1343347)
+85) product_request_type -> too many NaN values (1323478 from 1343347)
+86) product_servicename -> redundant "pretty text."
+87) product_sku -> unique alphanumeric code assigned to every specific combination of product attributes
+88) product_snapshotarchivefeetype -> too many NaN values (1343052 from 1343347)
+89) product_storage -> too many NaN values (1198521 from 1343347)
+90) product_storage_class -> too many NaN values (1336676 from 1343347)
+91) product_storage_media -> too many NaN values (1137754 from 1343347)
+92) product_storage_type -> too many NaN values (1342957 from 1343347)
+93) product_subscription_type -> too many NaN values (1342972 from 1343347)
+94) product_tenancy -> too many NaN values (1260882 from 1343347)
+95) product_to_location_type -> redundant from product_to_location
+96) product_to_region_code -> too many NaN values (901781 from 1343347)
+97) product_usage_group -> too many NaN values (1342972 from 1343347)
+98) product_vaulttype -> too many NaN values (1343332 from 1343347)
+99) product_vcpu -> too many NaN values (1198521 from 1343347)
+100) product_version -> too many NaN values (1339620 from 1343347)
+101) product_volume_api_name -> too many NaN values (998327 from 1343347)
+102) product_volume_type -> too many NaN values (1146064 from1343347)
+103) product_vpcnetworkingsupport -> too many NaN values (1201601 from1343347)
+104) pricing_lease_contract_length -> too many NaN values (1335955 from 1343347)
+105) pricing_offering_class -> too many NaN values (1335955 from 1343347)
+106) pricing_purchasse_option -> too many NaN values (1335955 from 1343347)
+107) pricing_rate_code -> useless id
+108) pricing_rate_id -> useless id
+109) pricing_currency -> semuanya USD
+110) pricing_public_on_demand_cost -> leakage, memperlihatkan jawaban
+111) pricing_public_on_demand_rate -> leakage, memperlihatkan rate nya
+112) reservation_amortized_upfront_cost_for_usage-> Leakage. It reveals the cost
+113) reservation_amortized - reservation_upfront -> either fully null data or not, data leakage karena itu merupakan financial components
+114) savings_plan_savings_plan_a_r_n -> meaningless uniques value
+115) savings_plan_savings_plan_rate -> cause leakage because contains financial components
+116) saving_plan_used_commitment - saving_plan_religion -> target data leakage + empty
+117) resource_tags_user_2024 -> too many NaN values (1342949 from 1343347)
+118) resource_tags_user_backup -> too many NaN values (1306473 from 1343347)
+119) resource_tags_user_managed_by_amazon_sage_maker_resource ->too many NaN values (1342597 from 1343347)
+120) resource_tags_user_s_t_a_g_e -> too many NaN values (1328604 from 1343347)
+121) resource_tags_user_name -> high cardinality, This is the specific name of the server
+122) resource_tags_user_s_t_a_g_e -> too many NaN values (1328604 from 1343347)
+123) resource_tags_user_service -> redundant to product_servicecode
+124) resource_tags_user_tahun -> too many NaN values (1094698 from 1343347)
+125) resource_tags_user_devops_guru_default -> too many NaN values (1339599 from 1343347)
+126) resource_tags_user_dlm_managed -> too many NaN values (1338789 from 1343347)
+127) resource_tags_user_sagemaker_domain_arn -> too many NaN values (1342972 from 1343347)
+128) resource_tags_user_sagemaker_user_profile_arn -> too many NaN values (1342972 from 1343347)
+129) year dan month -> 1 tipe value doang
+139) line_item_unblended_rate -> The raw rate charged for the service (GAJADI KARENA REVEALS JAWABANNYA)
+140) line_item_blended_rate -> The averaged cost rate for accounts with consolidated billing (GAJADI KARENA REVEALS JAWABANNYA)
+141) line_item_blended_cost -> The total cost after blending across accounts (IDENTIK SM TARGET VAR)14
+141) product_servicecode -> acts as your primary "Service Label" (gajadi make karena sudah diwakili line_item_product_code)
+142) product_usagetype -> The specific usage category for billing (gajadi make, sudah diwakili line_item_usage_type)
+143) product_product_name -> product aws name (already have the code from line_item_product_code)
+144) identity_time_interval -> ada waktu (redundan terhadap usage_start_date)
+
+yang akan di keep sementara
+1) line_item_line_item_type -> ada beberapa tipe values
+2) line_item_usage_start_date -> patokan waktu
+3) line_item_usage_end_date -> patokan waktu
+4) line_item_product_code -> tipe2 amazon services
+5) line_item_usage_type -> tipe2 detail amazon services
+6) line_item_operation -> operasi AWS yang dilakukan
+7) line_item_availability_zone -> zona produk layanan AWS
+8) line_item_usage_amount -> The total amount of usage
+9) line_item_normalization_factor -> A factor used to normalize usage for different instance sizes
+10) line_item_normalized_usage_amount -> The normalized usage amount, useful for cost comparisons
+11) line_item_unblended_cost -> The total cost before applying any discounts or savings plans
+12) product_clock_speed -> CPU frequency of the physical processor powering AWS resource (usually an EC2 instance or RDS database)
+13) product_from_location -> Data Transfer costs
+14) product_product_family -> kategori produk yang lebih luas
+15) product_region -> geographical region where the service was used
+16) product_to_location -> lokasi product di eksekusi?
+17) product_transfer_type -> the nature of the data connection
+18) product_usagetype -> The specific usage category for billing (gajadi make, sudah diwakili line_item_usage_type)
+19) pricing_term -> The billing term
+20) pricing_unit -> The unit of measurement for the cost
+21) resource_tags_user_customer -> PT Jalin serves different banking clients, it tells which client is driving the cost
+22) resource_tags_user_project -> the strongest business feature. It groups costs by internal initiatives.
+23) resource_tags_user_project_owner -> because it could indicate who owned the project that could cause
+24) resource_tags_user_tech_owner -> The technical owner of the resource
+
+FINAL PHASE 1 CLEANING
+
+DEPENDENT VARIABLE : line_item_unblended_cost
+INDEPENDENT VARIABLE:
+A. Usage and Specs
+
+1) line_item_usage_amount -> The total amount of usage
+2) line_item_normalization_factor -> A factor used to normalize usage for different instance sizes
+3) line_item_normalized_usage_amount -> The normalized usage amount, useful for cost comparisons
+4) product_clock_speed -> CPU frequency of the physical processor powering AWS resource (usually an EC2 instance or RDS database)
+5) line_item_line_item_type -> ada beberapa tipe values
+6) line_item_usage_type -> tipe2 detail amazon services
+7) line_item_operation -> operasi AWS yang dilakukan
+
+B. Location and Network
+
+8) product_region -> geographical region where the service was used
+9) line_item_availability_zone -> zona produk layanan AWS
+10) product_to_location -> lokasi product di eksekusi?
+11) product_from_location -> Data Transfer costs
+12) product_transfer_type -> the nature of the data connection
+
+C. Product Metadata
+
+13) line_item_product_code -> tipe2 amazon services
+14) product_product_family -> kategori produk yang lebih luas
+15) pricing_term -> The billing term
+16) pricing_unit -> The unit of measurement for the cost
+
+D. Business Tags
+
+17) resource_tags_user_customer -> PT Jalin serves different banking clients, it tells which client is driving the cost
+18) resource_tags_user_project -> the strongest business feature. It groups costs by internal initiatives.
+19) resource_tags_user_project_owner -> because it could indicate who owned the project that could cause
+20) resource_tags_user_tech_owner -> The technical owner of the resource
+
+E. Time
+
+21) line_item_usage_start_date -> patokan waktu
+22) line_item_usage_end_date -> patokan waktu
+--> menghasilkan kolom duration hours (dr 2 kolom atas), day_of_week (dari start_date), hour_of_day (dari start_date)
+
+

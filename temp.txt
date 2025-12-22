@@ -1,0 +1,408 @@
+https://www.kaggle.com/api/v1/datasets/download/ahmedabbas757/coffee-sales
+
+CREATE DATABASE IF NOT EXISTS coffee_shop;
+CREATE TABLE IF NOT EXISts sales
+ENGINE = MergeTree()
+PRIMARY KEY (`transaction_date`, `store_id`, `product_id`)
+ORDER BY (`transaction_date`, `store_id`, `product_id`)
+SETTINGS allow_nullable_key = 1
+AS SELECT * FROM file('coffee-sales.csv', "CSVWithNames");
+
+docker compose down && clear && docker compose up
+
+docker exec -it clickhouse_db clickhouse-client
+docker exec -it clickhouse_db bash
+
+docker exec -it clickhouse_db clickhouse-client -u admin --password password -q "DROP DATABASE coffee_shop; CREATE DATABASE IF NOT EXISTS coffee_shop; CREATE TABLE IF NOT EXISTS coffee_shop.sales ENGINE = MergeTree() PRIMARY KEY (\`transaction_date\`, \`store_id\`, \`product_id\`) ORDER BY (\`transaction_date\`, \`store_id\`, \`product_id\`) SETTINGS allow_nullable_key = 1 AS SELECT * FROM file('coffee-sales.csv', 'CSVWithNames')"
+docker exec -it clickhouse_db clickhouse-client -u admin --password password -q "INSERT INTO coffee_shop.sales SELECT * FROM file('coffee-sales.csv', 'CSVWithNames');"
+docker exec -it clickhouse_db clickhouse-client -u admin --password password -q "TRUNCATE TABLE coffee_shop.sales;"
+
+/etc/clickhouse-server/users.d/default-password.xml
+
+CLICKHOUSE_USER=admin
+CLICKHOUSE_PASSWORD=password
+
+Note: add clickhouse database in metabase
+host=host.docker.internal:8123
+
+Add database in metabase via CLI
+curl -X POST -H "Content-Type: application/json" -H "X-Metabase-Session: <your_api_token>" -d '{
+  "name": "My Database",
+  "engine": "postgres",  # Or "mysql", "clickhouse", etc.
+  "details": {
+    "host": "db_host",
+    "port": 5432,
+    "dbname": "database_name",
+    "user": "db_user",
+    "password": "db_password"
+  }
+}' "http://your_metabase_host/api/database"
+
+TO9IRyq2XNFokle4w0OarvP5ssLaCSCRyhZiKIy9M08=
+
+!!! docker compose up init-airflow -d
+
+Cron Job Example
+Schedule                    Cron Expression (MIN HOUR DOM MON DOW)	      Runs On
+Every minute	              * * * * * command	                            Every minute
+Every 5 minutes	            */5 * * * * command	                          Every 5 minutes
+Every hour	                0 * * * * command	                            Every hour, on the hour
+Every day at midnight	      0 0 * * * command	                            Every day at 12:00 AM
+Every Sunday at 3 AM	      0 3 * * 0 command	                            Every Sunday at 3 AM
+Every Monday at 6 AM	      0 6 * * 1 command	                            Every Monday at 6 AM
+First day of every month	  0 0 1 * * command	                            First day of the month at 12 AM
+
+MIN	  0-59	                            Minute of execution
+HOUR	0-23	                            Hour of execution
+DOM   (Day of Month)	                  1-31	Day of the month
+MON   (Month)	1-12	                    Month of execution
+DOW   (Day of Week)	0-6 (0 = Sunday)	  Day of the week
+
+
+DROP DATABASE IF EXISTS temp;
+        CREATE DATABASE IF NOT EXISTS temp;
+        CREATE TABLE IF NOT EXISTS temp.cloud_performance ENGINE = MergeTree()
+        PRIMARY KEY (timestamp)
+        ORDER BY (timestamp)
+        SETTINGS allow_nullable_key = 1
+        AS SELECT * FROM file('cloud-computing-performance-metrics.csv', 'CSVWithNames');
+
+SELECT * FROM temp.cloud_performance;
+
+temp.*
+temp
+config
+clickhouse-server/
+airflow/airflow.cfg
+airflow/dags/__pycache__
+ingestion_script/__pycache__
+
+
+
+NULL COLUMNS
+
+['bill_invoice_id',
+ 'product_datatransferout',
+ 'reservation_end_time',
+ 'reservation_modification_status',
+ 'reservation_normalized_units_per_reservation',
+ 'reservation_number_of_reservations',
+ 'reservation_start_time',
+ 'reservation_total_reserved_normalized_units',
+ 'reservation_total_reserved_units',
+ 'reservation_units_per_reservation']
+
+COLUMNS DESCRIPTION
+
+Here’s a description of each column based on common usage in cloud billing and cost optimization reports, especially for AWS or other cloud service providers.
+
+
+Identity & Billing Information:
+identity_line_item_id – Unique identifier for each line item in the billing data.
+identity_time_interval – Time range during which the usage occurred.
+bill_invoicing_entity – The entity responsible for invoicing the customer (e.g., AWS, Google Cloud).
+bill_billing_entity – The entity that handles billing and payments.
+bill_bill_type – Type of billing (e.g., Invoice, Statement, Consolidated Bill).
+bill_payer_account_id – The account ID responsible for paying the bill.
+bill_billing_period_start_date – Start date of the billing period.
+bill_billing_period_end_date – End date of the billing period.
+Line Item Usage & Cost Information:
+line_item_usage_account_id – The account that incurred the usage.
+line_item_line_item_type – The type of usage (e.g., Usage, Tax, Fee).
+line_item_usage_start_date – Start date of usage.
+line_item_usage_end_date – End date of usage.
+line_item_product_code – Code representing the product or service used (e.g., AmazonEC2).
+line_item_usage_type – A detailed description of the type of usage (e.g., Instance-Hours, DataTransfer-Out).
+line_item_operation – The cloud operation performed (e.g., RunInstances, GetObject).
+line_item_resource_id – The unique identifier of the resource used (e.g., an EC2 instance ID).
+line_item_usage_amount – The total amount of usage (e.g., number of instance hours).
+line_item_normalization_factor – A factor used to normalize usage for different instance sizes.
+line_item_normalized_usage_amount – The normalized usage amount, useful for cost comparisons.
+line_item_currency_code – Currency of the costs (e.g., USD, EUR).
+line_item_unblended_rate – The raw rate charged for the service.
+line_item_unblended_cost – The total cost before applying any discounts or savings plans.
+line_item_blended_rate – The averaged cost rate for accounts with consolidated billing.
+line_item_blended_cost – The total cost after blending across accounts.
+line_item_line_item_description – A human-readable description of the line item.
+line_item_legal_entity – The legal entity responsible for the service charge.
+Product & Service Details:
+product_product_name – The name of the product (e.g., Amazon S3, EC2).
+product_product_family – The broader category of the product (e.g., Compute, Storage).
+product_region – The geographical region where the service was used (e.g., us-east-1).
+product_servicecode – The unique service code for billing (e.g., AmazonEC2).
+product_servicename – The official service name (e.g., Amazon Elastic Compute Cloud).
+product_sku – A unique SKU (Stock Keeping Unit) identifying a product variation.
+product_usagetype – The specific usage category for billing (e.g., APN1-BoxUsage:m5.large).
+Pricing Information:
+pricing_rate_code – Code for a specific pricing rate.
+pricing_rate_id – The identifier for the pricing rule applied.
+pricing_currency – Currency used for pricing.
+pricing_public_on_demand_cost – The standard on-demand cost for the service.
+pricing_public_on_demand_rate – The per-unit rate of the service on demand.
+pricing_term – The billing term (e.g., OnDemand, Reserved).
+pricing_unit – The unit of measurement for the cost (e.g., GB, Hrs).
+Reservation & Savings Plans:
+reservation_amortized_upfront_cost_for_usage – The portion of an upfront reservation cost allocated to usage.
+reservation_amortized_upfront_fee_for_billing_period – The upfront cost spread over the billing period.
+reservation_effective_cost – The effective cost of the reserved instance usage.
+reservation_recurring_fee_for_usage – The recurring fee associated with reservations.
+reservation_subscription_id – ID of the reservation subscription.
+reservation_unused_amortized_upfront_fee_for_billing_period – The portion of the upfront fee for unused reserved instances.
+reservation_unused_normalized_unit_quantity – Unused reserved instance capacity.
+reservation_unused_quantity – The actual unused amount.
+reservation_unused_recurring_fee – Recurring fees for unused reservations.
+reservation_upfront_value – The total upfront cost of the reservation.
+savings_plan_total_commitment_to_date – Total commitment made under a savings plan.
+savings_plan_savings_plan_rate – The rate applied for savings plan discounts.
+savings_plan_used_commitment – The portion of the savings plan commitment used.
+savings_plan_savings_plan_effective_cost – The cost after savings plan discounts.
+savings_plan_amortized_upfront_commitment_for_billing_period – Upfront commitment spread over the period.
+savings_plan_recurring_commitment_for_billing_period – Recurring commitment fees for savings plans.
+Resource Tags & Metadata:
+resource_tags_user_customer – Tag indicating the customer using the resource.
+resource_tags_user_name – Name tag associated with the resource.
+resource_tags_user_project – Project name the resource belongs to.
+resource_tags_user_project_owner – Owner of the project.
+resource_tags_user_service – The service the resource is associated with.
+resource_tags_user_tech_owner – The technical owner of the resource.
+Date Information:
+year – The year of the billing period.
+month – The month of the billing period.
+
+Columns remain after transformation
+
+identity_time_interval – Time range during which the usage occurred.
+bill_invoicing_entity – The entity responsible for invoicing the customer (e.g., AWS, Google Cloud).
+bill_billing_entity – The entity that handles billing and payments.
+bill_bill_type – Type of billing (e.g., Invoice, Statement, Consolidated Bill).
+bill_billing_period_start_date – Start date of the billing period.
+bill_billing_period_end_date – End date of the billing period.
+line_item_line_item_type – The type of usage (e.g., Usage, Tax, Fee).
+line_item_usage_start_date – Start date of usage.
+line_item_usage_end_date – End date of usage.
+line_item_product_code – Code representing the product or service used (e.g., AmazonEC2).
+line_item_usage_type – A detailed description of the type of usage (e.g., Instance-Hours, DataTransfer-Out).
+line_item_operation – The cloud operation performed (e.g., RunInstances, GetObject).
+line_item_usage_amount – The total amount of usage (e.g., number of instance hours).
+line_item_normalization_factor – A factor used to normalize usage for different instance sizes.
+line_item_normalized_usage_amount – The normalized usage amount, useful for cost comparisons.
+line_item_currency_code – Currency of the costs (e.g., USD, EUR).
+line_item_unblended_rate – The raw rate charged for the service.
+line_item_unblended_cost – The total cost before applying any discounts or savings plans.
+line_item_blended_rate – The averaged cost rate for accounts with consolidated billing.
+line_item_blended_cost – The total cost after blending across accounts.
+line_item_line_item_description – A human-readable description of the line item.
+line_item_legal_entity – The legal entity responsible for the service charge.
+product_availability -
+product_clock_speed - CPU frequency of the physical processor powering AWS resource (usually an EC2 instance or RDS database)
+product_from_location - tells you where network traffic started (the source)
+product_dedicated_ebs_throughput - maximum speed (bandwidth) at which a specific EC2 instance can transfer data to and from its storage drives (EBS Volumes)
+product_location - human-readable name of the region where your resource lives
+product_product_name – The name of the product (e.g., Amazon S3, EC2).
+product_product_family – The broader category of the product (e.g., Compute, Storage).
+product_region – The geographical region where the service was used (e.g., us-east-1).
+product_servicecode – The unique service code for billing (e.g., AmazonEC2).
+product_servicename – The official service name (e.g., Amazon Elastic Compute Cloud).
+product_usagetype – The specific usage category for billing (e.g., APN1-BoxUsage:m5.large).
+pricing_currency – Currency used for pricing.
+pricing_public_on_demand_cost – The standard on-demand cost for the service.
+pricing_public_on_demand_rate – The per-unit rate of the service on demand.
+pricing_term – The billing term (e.g., OnDemand, Reserved).
+pricing_unit – The unit of measurement for the cost (e.g., GB, Hrs).
+savings_plan_savings_plan_rate – The rate applied for savings plan discounts.
+savings_plan_savings_plan_effective_cost – The cost after savings plan discounts.
+resource_tags_user_customer – Tag indicating the customer using the resource.
+resource_tags_user_name – Name tag associated with the resource.
+resource_tags_user_project – Project name the resource belongs to.
+resource_tags_user_project_owner – Owner of the project.
+resource_tags_user_service – The service the resource is associated with.
+resource_tags_user_tech_owner – The technical owner of the resource.
+year – The year of the billing period.
+month – The month of the billing period.
+
+remaining columns in a form of list: 'bill_invoicing_entity', 'bill_billing_entity', 'bill_bill_type',
+'bill_billing_period_start_date', 'bill_billing_period_end_date',
+'line_item_line_item_type', 'line_item_usage_start_date',
+'line_item_usage_end_date', 'line_item_product_code',
+'line_item_usage_type', 'line_item_operation', 'line_item_usage_amount',
+'line_item_normalization_factor', 'line_item_normalized_usage_amount',
+'line_item_currency_code', 'line_item_unblended_rate',
+'line_item_unblended_cost', 'line_item_blended_rate',
+'line_item_blended_cost', 'line_item_line_item_description',
+'line_item_legal_entity', 'product_product_name',
+'product_product_family', 'product_region', 'product_servicecode',
+'product_servicename', 'product_usagetype', 'pricing_currency',
+'pricing_public_on_demand_cost', 'pricing_public_on_demand_rate',
+'pricing_term', 'pricing_unit', 'savings_plan_savings_plan_rate',
+'savings_plan_savings_plan_effective_cost',
+'resource_tags_user_customer', 'resource_tags_user_name',
+'resource_tags_user_project', 'resource_tags_user_project_owner',
+'resource_tags_user_service', 'resource_tags_user_tech_owner', 'year','month'
+
+based on these columns, what visualization can I create in a cloud billing dashboard. Also create 4 KPIs so I can put it on the top of the dashboard
+
+Dtype conversion:
+- all IDs: number to string (IDs: bill_payer_account_id, line_item_usage_account_id, pricing_rate_id, reservation_subscription_id)
+- line_item_usage_amount: string to float
+- line_item_normalization_factor: string to float
+- line_item_normalized_usage_amount string to float
+- line_item_unblended_rate: string to float
+- line_item_unblended_cost: string to float
+- line_item_blended_rate: string to float
+- line_item_blended_cost: string to float
+- pricing_public_on_demand_cost: string to float
+- pricing_public_on_demand_rate: string to float
+
+Backup docker volume
+docker run --rm -v <volume_name>:/data -v "$(pwd)":/backup busybox tar -czf /backup/<backup_filename>.tar.gz -C /data .
+docker run --rm → Runs a temporary container and removes it after execution.
+-v <volume_name>:/data → Mounts the Docker volume inside the container at /data.
+-v "$(pwd)":/backup → Mounts the current working directory on the host machine to /backup inside the container.
+busybox tar -czf /backup/<backup_filename>.tar.gz -C /data . → Compresses the contents of the volume (/data) into a .tar.gz file stored in the host’s current directory ($(pwd)).
+
+export MSYS_NO_PATHCONV=1
+docker run --rm -v servercostoptimization_metabase-data:/data -v "$(pwd)":/backup busybox tar -czf /backup/metabase-backup.tar.gz -C /data .
+docker run --rm -v servercostoptimization_postgres-data:/data -v "$(pwd)":/backup busybox tar -czf /backup/metabase_db-backup.tar.gz -C /data .
+docker run --rm -v servercostoptimization_clickhouse-data:/data -v "$(pwd)":/backup busybox tar -czf /backup/clickhouse-backup.tar.gz -C /data .
+docker run --rm -v datahub_mysqldata:/data -v "$(pwd)":/backup busybox tar -czf /backup/datahub_mysql-backup.tar.gz -C /data .
+
+Backup clickhouse database schema
+docker exec clickhouse_db clickhouse-client --host localhost --query "SHOW CREATE DATABASE cloud_billing_db" > clickhouse_schema_backup.sql
+docker exec clickhouse_db clickhouse-client --host localhost --query "SELECT concat('SHOW CREATE TABLE ', database, '.', name, ';') FROM system.tables WHERE database = 'cloud_billing_db'" | docker exec -i clickhouse_db clickhouse-client --host localhost --format=TabSeparated --query "FORMAT TSV" >> clickhouse_schema_backup.sql
+
+Restore docker volume
+docker run --rm -v <volume_name>:/data -v "$(pwd)":/backup busybox tar -xzf /backup/<backup_filename>.tar.gz -C /data
+docker run --rm → Runs a temporary container and removes it after execution.
+-v <volume_name>:/data → Mounts the target Docker volume at /data inside the container.
+-v "$(pwd)":/backup → Mounts the current working directory on the host to /backup inside the container.
+busybox tar -xzf /backup/<backup_filename>.tar.gz -C /data → Extracts (-xzf) the backup archive into the volume.
+
+export MSYS_NO_PATHCONV=1
+docker run --rm -v servercostoptimization_postgres-data:/data -v "$(pwd)":/backup busybox tar -xzf /backup/metabase_db-backup.tar.gz -C /data
+docker run --rm -v servercostoptimization_metabase-data:/data -v "$(pwd)":/backup busybox tar -xzf /backup/metabase-backup.tar.gz -C /data
+docker run --rm -v servercostoptimization_clickhouse-data:/data -v "$(pwd)":/backup busybox tar -xzf /backup/clickhouse-backup.tar.gz -C /data
+docker run --rm -v datahub_mysqldata:/data -v "$(pwd)":/backup busybox tar -xzf /backup/datahub_mysql-backup.tar.gz -C /data
+
+Restore clickhouse database schema
+docker exec -i servercostoptimization_clickhouse clickhouse-client --host localhost < clickhouse_schema_backup.sql
+
+docker compose -f compose.yaml -f ./datahub/docker-compose.yaml up
+docker compose -f compose.yaml -f ./datahub/docker-compose.yaml down
+
+Data shape after preprocessing stage 1: 1343347, 64
+Data shape after preprocessing stage 2: (714724, 43)
+
+Optimize transformation performance
+Chunk Processing >	Reduces memory load
+Drop Unnecessary Columns >	Saves memory
+Convert Data Types	Reduces > RAM usage
+Convert Scientific Notation	> Better readability
+Parallel Processing (Dask) > Speeds up computation
+Append Mode for CSV Writing >	Saves memory and avoids reloading data
+Use .values Instead of .apply()	> Faster column transformations
+Read Only Required Columns (usecols) > Avoids unnecessary data loading
+
+Visalization and metrics = https://chatgpt.com/c/67b2f894-25b0-8004-b6ca-0b96b55a182a
+
+# DBT
+Transformation guide: https://chatgpt.com/c/67b2f894-25b0-8004-b6ca-0b96b55a182a
+Materialization	Storage	Performance	Best for
+view	❌ No storage	🟡 Slower (queries source tables every time)	Small, frequently updated datasets
+table	✅ Stored permanently	🟢 Faster (precomputed, no recomputation)	Large, stable datasets
+incremental	✅ Stored partially	🟢 Faster (appends only new data)	Large, continuously growing datasets
+
+# AWS CLI
+bucket_name = jagr-cost-export-standard
+lokasi (prefix) = jagr-cost-export-standard-data/jagr-cost-export-standard/data/
+guide: https://chatgpt.com/c/67b2f894-25b0-8004-b6ca-0b96b55a182a
+
+aws s3 ls s3://jagr-cost-export-standard/jagr-cost-export-standard-data/jagr-cost-export-standard/data/
+aws s3 cp s3://jagr-cost-export-standard/jagr-cost-export-standard-data/jagr-cost-export-standard/data/BILLING_PERIOD=2024-02/jagr-cost-export-standard-00002.csv.gz .
+aws s3 cp s3://jagr-cost-export-standard/jagr-cost-export-standard-data/jagr-cost-export-standard/data/BILLING_PERIOD=2024-02/ . --recursive
+Download and rename files automatically
+aws s3 ls s3://jagr-cost-export-standard/jagr-cost-export-standard-data/jagr-cost-export-standard/data/BILLING_PERIOD=${BILLING_PERIOD}/ | awk '{print $4}' | while read file; do
+    new_filename="${BILLING_PERIOD}_${file}"
+
+    if [ ! -f "$new_filename" ]; then
+        aws s3 cp "s3://jagr-cost-export-standard/jagr-cost-export-standard-data/jagr-cost-export-standard/data/BILLING_PERIOD=${BILLING_PERIOD}/$file" "$new_filename"
+        echo "Downloaded: $file -> $new_filename"
+    else
+        echo "Skipping (already exists): $new_filename"
+    fi
+done
+
+
+  # Transformation Information
+  1. Total columns in raw data: 125
+  2. The most key-value pair in an object in product column: 31
+  3. The keys of product object:
+      {'availability_zone',
+      'capacitystatus',
+      'classicnetworkingsupport',
+      'clock_speed',
+      'current_generation',
+      'dedicated_ebs_throughput',
+      'ecu',
+      'enhanced_networking_supported',
+      'equivalentondemandsku',
+      'gpu_memory',
+      'instance_type_family',
+      'intel_avx2_available',
+      'intel_avx_available',
+      'intel_turbo_available',
+      'license_model',
+      'marketoption',
+      'memory',
+      'network_performance',
+      'normalization_size_factor',
+      'operating_system',
+      'physical_processor',
+      'pre_installed_sw',
+      'processor_architecture',
+      'processor_features',
+      'product_name',
+      'region',
+      'servicename',
+      'storage',
+      'tenancy',
+      'vcpu',
+      'vpcnetworkingsupport'}
+  4. Total columns after transformation: 225 (columns in 940c2972-41a9-49e8-9d8b-097488d07395.csv: 188)
+      columns difference: {'bill_payer_account_name',
+                            'cost_category',
+                            'discount',
+                            'discount_bundled_discount',
+                            'discount_total_discount',
+                            'line_item_net_unblended_cost',
+                            'line_item_net_unblended_rate',
+                            'line_item_usage_account_name',
+                            'product',
+                            'product_comment',
+                            'product_instancesku',
+                            'product_pricing_unit',
+                            'reservation_availability_zone',
+                            'reservation_net_amortized_upfront_cost_for_usage',
+                            'reservation_net_amortized_upfront_fee_for_billing_period',
+                            'reservation_net_effective_cost',
+                            'reservation_net_recurring_fee_for_usage',
+                            'reservation_net_unused_amortized_upfront_fee_for_billing_period',
+                            'reservation_net_unused_recurring_fee',
+                            'reservation_net_upfront_value',
+                            'reservation_reservation_a_r_n',
+                            'resource_tags',
+                            'resource_tags_nan',
+                            'savings_plan_net_amortized_upfront_commitment_for_billing_period',
+                            'savings_plan_net_recurring_commitment_for_billing_period',
+                            'savings_plan_net_savings_plan_effective_cost',
+                            'split_line_item_actual_usage',
+                            'split_line_item_net_split_cost',
+                            'split_line_item_net_unused_cost',
+                            'split_line_item_parent_resource_id',
+                            'split_line_item_public_on_demand_split_cost',
+                            'split_line_item_public_on_demand_unused_cost',
+                            'split_line_item_reserved_usage',
+                            'split_line_item_split_cost',
+                            'split_line_item_split_usage',
+                            'split_line_item_split_usage_ratio',
+                            'split_line_item_unused_cost'}
+  5. Potential columns being used for ML training: pricing_rate_code, pricing_rate_id, product_memory, product_physical_processor, product_vcpu, product_ecu, product_availability_zone, product_storage, product_network_performance, product_processor_features, product_license_model, product_transfer_type, product_volume_api_name, product_volume_type, product_storage_media, product_max_volume_size, product_max_throughputvolume, resource_tags_user_tahun, product_from_location, product_from_location_type, product_from_region_code, product_location, product_location_type, product_region_code, product_sku, product_to_location, product_to_location_type, product_to_region_code, reservation_subscription_id
