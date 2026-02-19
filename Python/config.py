@@ -18,15 +18,15 @@ TECH_OWNER_KNOWLEDGE = {
     "DLA": {
         "full_name": "Divisi Layanan Data dan Analitik",
         "description": "Mengelola data dan menghasilkan insight berbasis data",
-        "Scope": "Pemrosesan data, dashboard & reporting, analisis bisnis, AI/Machine Learning, data quality",
+        "scope": "Pemrosesan data, dashboard & reporting, analisis bisnis, AI/Machine Learning, data quality",
         "used_operation": ["Not Applicable", "CreateDBInstance:0018", "InterZone-In", "CreateDBInstance:0016", "InterZone-Out", "RunInstances", "Hourly", "CreateVolume", "CreateVolume-Gp3", "EBS:IO-Write", "EBS:IO-Read", "CreateDBInstance", "CreateSnapshot"],
         "products_handled": ["Data Transfer", "Database Storage", "Database Instance", "Compute Instance", "Storage", "System Operation", "Storage Snapshot"],
         "projects_handled": ["PPG", "GBGTKPAUDDB", "SIMPKB", "SIMPATIKA", "PPGPRAJAB", "Inkubasi", "GuruPenggerak", "SekolahPenggerak", "P2GTKMP", "infra"]
     },
     "DPP": {
-        "full_name": "",
-        "description": "",
-        "Scope": "",
+        "full_name": "Divisi Pengembangan dan Produk",
+        "description": "Mengembangkan dan mengintegrasikan sistem/aplikasi perusahaan",
+        "scope": "Pengembangan frontend & backend, UI/UX, integrasi API, testing, deployment, dan maintenance sistem",
         "used_operation": ["ReadCostAllocation", "CreateVolume", "ApiGatewayRequest", "HeadBucket", "StandardStorage", "EBS:IO-Read", "RunInstances", "Invoke", "InterZone-In", "Hourly", "PutLogEvents", "EBS:IO-Write", "InterZone-Out", "Shutdown", "HourlyStorageMetering", "ReadBucketPublicAccessBlock", "ReadBucketPolicy", "ReadLocation", "ReadACL", "ReadBucketPolicyStatus"],
         "products_handled": ["Data Transfer", "Storage", "API Calls", "API Request", "System Operation", "Compute Instance", "Serverless", "Data Payload", "Storage Snapshot"],
         "projects_handled": ["SIMPKB", "DiklatDIKMENDIKSUS", "SIMPATIKA", "MASOOK", "PPG", "Masook"]
