@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from config import TECH_OWNER_KNOWLEDGE
+from dotenv import load_dotenv
 
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Dashboard Cloud Cost - PT Jalin Mayantara", layout="wide")
@@ -11,14 +12,14 @@ st.set_page_config(page_title="Dashboard Cloud Cost - PT Jalin Mayantara", layou
 def load_data():
     # Load data untuk grafik (Pastikan file ini ada di folder yang sama)
     try:
-        df_lite = pd.read_csv("dashboard_data_lite.csv")
+        df_lite = pd.read_csv("../cleaned-datasets/dashboard_data_FULL.csv")
         df_lite['timestamp'] = pd.to_datetime({
             'year': 2025, 'month': 2,
             'day': df_lite['day_of_month'], 'hour': df_lite['hour_of_day']
         })
     except FileNotFoundError:
         # Jika file belum ada, buat dummy data sementara agar UI tetap jalan untuk demo dospem
-        st.warning("File 'dashboard_data_lite.csv' tidak ditemukan. Menampilkan UI tanpa data grafik.")
+        st.warning("Data tidak ditemukan. Menampilkan UI tanpa data grafik.")
         df_lite = pd.DataFrame()
 
     return df_lite
