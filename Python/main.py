@@ -31,7 +31,7 @@ st.title("☁️ Identifikasi Peluang Optimasi Biaya Cloud AWS")
 st.markdown("Dashboard ini menampilkan profil biaya, visualisasi performa, dan insight otomatis berbasis AI untuk setiap divisi (Tech Owner).")
 
 # Filter Sidebar sesuai sketsa
-st.sidebar.header("Pilih Parameter")
+st.sidebar.header("PILIHLAH DIVISI YANG DICARI TAHU")
 selected_owner = st.sidebar.selectbox("Pilih Divisi (Tech Owner):", list(TECH_OWNER_KNOWLEDGE.keys()))
 
 
@@ -95,7 +95,7 @@ if not df_lite.empty:
     fig = px.line(df_melted, x='timestamp', y='Total Cost (USD)', color='Cost Type',
                   color_discrete_map={"Actual Cost (Riil)": "#1f77b4", "Predicted Cost (Baseline AI)": "#ff7f0e"},
                   markers=True,
-                  title=f"Grafik Biaya: {selected_owner} (14 - 16 Februari)")
+                  title=f"Grafik Biaya: {selected_owner}")
 
     fig.update_layout(hovermode="x unified", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     st.plotly_chart(fig, use_container_width=True)
