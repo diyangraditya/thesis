@@ -79,11 +79,15 @@ st.markdown("---")
 st.header("Bagian B: Visualisasi Performa & Akses Data")
 
 if not df_lite.empty:
-    # Filter data berdasarkan owner
+    # 1. Filter data berdasarkan owner
     owner_data = df_lite[df_lite['resource_tags_user_tech_owner'] == selected_owner]
 
-    # Plotly Line Chart
-    df_melted = owner_data.melt(id_vars=['timestamp'],
+    # 2. AGREGASI DATA PER JAM (KUNCI AGAR GRAFIK TIDAK KUSUT!)
+    # Kita jumlahkan semua cost dari berbagai project/produk di jam yang sama
+    chart_data = owner_data.groupby('timestamp')[['line_item_unblended_cost', 'predicted_cost']].sum().reset_index()
+
+    # 3. Melt data untuk Plotly
+    df_melted = chart_data.melt(id_vars=['timestamp'],
                                 value_vars=['line_item_unblended_cost', 'predicted_cost'],
                                 var_name='Cost Type', value_name='Total Cost (USD)')
 
@@ -92,12 +96,20 @@ if not df_lite.empty:
         'predicted_cost': 'Predicted Cost (Baseline AI)'
     })
 
+    # 4. Buat Plotly Line Chart
     fig = px.line(df_melted, x='timestamp', y='Total Cost (USD)', color='Cost Type',
                   color_discrete_map={"Actual Cost (Riil)": "#1f77b4", "Predicted Cost (Baseline AI)": "#ff7f0e"},
-                  markers=True,
-                  title=f"Grafik Biaya: {selected_owner}")
+                  title=f"Grafik Tren Biaya Hourly: {selected_owner} (Februari 2025)")
 
-    fig.update_layout(hovermode="x unified", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    # 5. Layout dan Fitur Zoom (Range Slider)
+    fig.update_layout(
+        hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+
+    # INI ADALAH FITUR MAGIC UNTUK ZOOM IN/OUT (SHRINK VIEW)
+    fig.update_xaxes(rangeslider_visible=True)
+
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.info("Grafik akan muncul di sini setelah data CSV di-load.")
