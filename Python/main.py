@@ -26,13 +26,24 @@ def load_data():
 
 df_lite = load_data()
 
-# HEADER & FILTER (Sesuai Sketsa: Pemilihan Tech Owner)
-st.title("☁️ Identifikasi Peluang Optimasi Biaya Cloud AWS")
-st.markdown("Dashboard ini menampilkan profil biaya, visualisasi performa, dan insight otomatis berbasis AI untuk setiap divisi (Tech Owner).")
+# ==============================================================================
+# --- HEADER & FILTER (TENGAH ATAS) ---
+# Menggunakan HTML untuk menengahkan teks judul dan deskripsi
+st.markdown("<h1 style='text-align: center;'>☁️ Identifikasi Peluang Optimasi Biaya Cloud AWS ☁️ ️</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 18px; color: gray;'>Dashboard ini menampilkan profil biaya, visualisasi performa, dan insight otomatis berbasis AI untuk setiap divisi (Tech Owner).</p>", unsafe_allow_html=True)
 
-# Filter Sidebar sesuai sketsa
-st.sidebar.header("PILIHLAH DIVISI YANG DICARI TAHU")
-selected_owner = st.sidebar.selectbox("Pilih Divisi (Tech Owner):", list(TECH_OWNER_KNOWLEDGE.keys()))
+st.markdown("<br>", unsafe_allow_html=True) # Jarak estetik
+
+# Trik menengahkan Dropdown Filter: Bikin 3 kolom, taruh dropdown di kolom tengah
+col_kosong1, col_filter, col_kosong2 = st.columns([1, 2, 1])
+
+with col_filter:
+    st.markdown("<h4 style='text-align: center;'>🔍 Pilih Divisi yang Ingin Dianalisis:</h4>", unsafe_allow_html=True)
+    # label_visibility="collapsed" menyembunyikan label bawaan agar UI lebih bersih
+    selected_owner = st.selectbox("Pilih Divisi (Tech Owner):", list(TECH_OWNER_KNOWLEDGE.keys()), label_visibility="collapsed")
+
+st.markdown("<br>", unsafe_allow_html=True) # Jarak estetik
+# ==============================================================================
 
 
 # BAGIAN A: PROFIL DIVISI & SUMMARY BIAYA
@@ -74,21 +85,20 @@ with col_a2:
         st.metric(label="Total Biaya (Actual)", value="$0.00")
         st.metric(label="Rata-rata Biaya per Hari", value="$0.00")
 
-# BAGIAN B: VISUALISASI DASHBOARD 2x2 ASIMETRIS (Konteks Biaya)
+# BAGIAN B: VISUALISASI DASHBOARD (Konteks Biaya & Servis)
 st.markdown("---")
 st.header("Bagian B: Visualisasi Performa & Distribusi Biaya")
 
 if not df_lite.empty:
-    # Filter data berdasarkan owner (Untuk 3 grafik yang dinamis)
+    # Filter data berdasarkan owner (Untuk grafik yang dinamis)
     owner_data = df_lite[df_lite['resource_tags_user_tech_owner'] == selected_owner]
 
     # ==============================================================================
-    # --- BARIS 1 (Atas) --- [JAWABAN NO 1: LAYOUT ATAS DOMINAN KIRI]
-    # Kita menggunakan rasio [2, 1] - Kolom kiri 2x lebih lebar dari kolom kanan.
-    row1_col1, row1_col2 = st.columns([2, 1])
+    # --- BARIS 1 (Atas) --- [2 Kolom Dibagi Rata: Rasio 1:1]
+    row1_col1, row1_col2 = st.columns(2)
 
     with row1_col1:
-        # 1. KIRI ATAS: Line Chart Actual vs Predicted (Dinamis)
+        # 1. KIRI ATAS: Line Chart Actual vs Predicted
         chart1_data = owner_data.groupby('timestamp')[['line_item_unblended_cost', 'predicted_cost']].sum().reset_index()
         df_melted = chart1_data.melt(id_vars=['timestamp'], value_vars=['line_item_unblended_cost', 'predicted_cost'],
                                      var_name='Cost Type', value_name='Total Cost (USD)')
@@ -98,7 +108,7 @@ if not df_lite.empty:
 
         fig1 = px.line(df_melted, x='timestamp', y='Total Cost (USD)', color='Cost Type',
                        color_discrete_map={"Actual Cost (Riil)": "#1f77b4", "Predicted Cost (Baseline AI)": "#ff7f0e"},
-                       title=f"1. Tren Biaya Keseluruhan: {selected_owner} (Gepeng Scroller)")
+                       title=f"1. Tren Biaya Keseluruhan: {selected_owner}")
 
         fig1.update_layout(
             hovermode="x unified", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -106,9 +116,8 @@ if not df_lite.empty:
             margin=dict(l=0, r=0, t=40, b=0)
         )
 
-        # [FITUR ZOOM GEPENG - KIRI ATAS]
         fig1.update_xaxes(
-            rangeslider=dict(visible=True, thickness=0.04), # Scroller gepeng
+            rangeslider=dict(visible=True, thickness=0.04),
             rangeselector=dict(
                 buttons=list([
                     dict(count=1, label="1 Hari", step="day", stepmode="backward"),
@@ -120,8 +129,7 @@ if not df_lite.empty:
         st.plotly_chart(fig1, use_container_width=True)
 
     with row1_col2:
-        # 2. KANAN ATAS: Bar Chart Top 6 Project (Dinamis)
-        # Akan terlihat lebih sempit karena rasio layout kita [2, 1]
+        # 2. KANAN ATAS: Bar Chart Top 6 Project
         top_projects = owner_data.groupby('resource_tags_user_project')['line_item_unblended_cost'].sum().nlargest(6).reset_index()
 
         fig2 = px.bar(top_projects, x='resource_tags_user_project', y='line_item_unblended_cost',
@@ -133,35 +141,30 @@ if not df_lite.empty:
 
 
     # ==============================================================================
-    # --- BARIS 2 (Bawah) --- [JAWABAN NO 1: LAYOUT BAWAH DOMINAN KANAN]
-    st.markdown("<br>", unsafe_allow_html=True) # Memberi jarak antar baris
-    # Kita menggunakan rasio [1, 2] - Kolom kanan 2x lebih lebar dari kolom kiri.
-    row2_col1, row2_col2 = st.columns([1, 2])
+    # --- BARIS 2 (Bawah) --- [3 Kolom Dibagi Rata: Rasio 1:1:1]
+    st.markdown("<br>", unsafe_allow_html=True)
+    row2_col1, row2_col2, row2_col3 = st.columns(3)
 
     with row2_col1:
         # 3. KIRI BAWAH: Horizontal Bar Chart Top 5 Tech Owner GLOBAL (Statis)
-        # Akan terlihat lebih sempit karena rasio layout kita [1, 2]
         top_global = df_lite.groupby('resource_tags_user_tech_owner')['line_item_unblended_cost'].sum().nlargest(5).reset_index()
 
         fig3 = px.bar(top_global, x='line_item_unblended_cost', y='resource_tags_user_tech_owner', orientation='h',
-                      title="3. Perbandingan 5 Divisi Termahal (Global PT Jalin)",
+                      title="3. 5 Divisi Termahal (Global PT Jalin)",
                       text_auto='.2s', color='line_item_unblended_cost', color_continuous_scale='Reds')
 
-        fig3.update_layout(yaxis={'categoryorder':'total ascending'}, xaxis_title="Total Biaya (USD)", yaxis_title="Divisi (Tech Owner)", showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
+        fig3.update_layout(yaxis={'categoryorder':'total ascending'}, xaxis_title="Total Biaya (USD)", yaxis_title="", showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
         st.plotly_chart(fig3, use_container_width=True)
 
     with row2_col2:
-        # 4. KANAN BAWAH: Line Chart Tren per Product Family (Dinamis)
-        # Akan terlihat LEBAR karena rasio layout kita [1, 2]
+        # 4. TENGAH BAWAH: Line Chart Tren per Product Family
         product_trend = owner_data.groupby(['timestamp', 'product_product_family'])['line_item_unblended_cost'].sum().reset_index()
 
         fig4 = px.line(product_trend, x='timestamp', y='line_item_unblended_cost', color='product_product_family',
-                       title=f"4. Tren Biaya Berdasarkan Jenis Produk ({selected_owner} - Gepeng Scroller)")
+                       title=f"4. Tren Biaya Tipe Servis ({selected_owner})")
 
-        # [JAWABAN NO 2: MENYAMAKAN FIG4 DENGAN FIG1 - MENAMBAH SCROLLER GEPENG & SELECTOR]
-        # Saya mereplikasi konfigurasi sumbu X dari fig1 ke sini persis.
         fig4.update_xaxes(
-            rangeslider=dict(visible=True, thickness=0.04), # Scroller gepeng
+            rangeslider=dict(visible=True, thickness=0.04),
             rangeselector=dict(
                 buttons=list([
                     dict(count=1, label="1 Hari", step="day", stepmode="backward"),
@@ -170,10 +173,23 @@ if not df_lite.empty:
                 ]), y=1.06
             )
         )
-
-        fig4.update_layout(hovermode="x unified", xaxis_title="Tanggal", yaxis_title="Biaya (USD)",
-                           legend_title="Produk AWS", margin=dict(l=0, r=0, t=40, b=0))
+        # Menaruh legend di bawah agar tidak memakan tempat horizontal
+        fig4.update_layout(hovermode="x unified", xaxis_title="", yaxis_title="Biaya (USD)",
+                           legend=dict(orientation="h", yanchor="top", y=-0.3, xanchor="center", x=0.5), margin=dict(l=0, r=0, t=40, b=0))
         st.plotly_chart(fig4, use_container_width=True)
+
+    with row2_col3:
+        # 5. KANAN BAWAH (BARU): Donut Chart Porsi Tipe Servis AWS
+        # Memperlihatkan servis apa yang paling banyak "dimakan" selama sebulan
+        service_dist = owner_data.groupby('product_product_family')['line_item_unblended_cost'].sum().reset_index()
+
+        fig5 = px.pie(service_dist, values='line_item_unblended_cost', names='product_product_family', hole=0.4,
+                      title=f"5. Porsi Tipe Servis AWS ({selected_owner})")
+
+        # Tampilkan persentase di dalam donat, legend ditaruh di bawah
+        fig5.update_traces(textposition='inside', textinfo='percent+label', showlegend=False)
+        fig5.update_layout(margin=dict(l=20, r=20, t=40, b=20))
+        st.plotly_chart(fig5, use_container_width=True)
 
 else:
     st.info("Grafik akan muncul di sini setelah data CSV di-load.")
