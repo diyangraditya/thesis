@@ -29,7 +29,7 @@ df_lite = load_data()
 # ==============================================================================
 # --- HEADER & FILTER (TENGAH ATAS) ---
 # Menggunakan HTML untuk menengahkan teks judul dan deskripsi
-st.markdown("<h1 style='text-align: center;'>☁️ Identifikasi Peluang Optimasi Biaya Cloud AWS ☁️ ️</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>☁️ Identifikasi Peluang Optimasi Biaya Cloud AWS PT Jayantara pada bulan Februari ☁️ ️</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; font-size: 18px; color: gray;'>Dashboard ini menampilkan profil biaya, visualisasi performa, dan insight otomatis berbasis AI untuk setiap divisi (Tech Owner).</p>", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True) # Jarak estetik
@@ -94,7 +94,7 @@ if not df_lite.empty:
     owner_data = df_lite[df_lite['resource_tags_user_tech_owner'] == selected_owner]
 
     # ==============================================================================
-    # --- BARIS 1 (Atas) --- [2 Kolom Dibagi Rata: Rasio 1:1]
+    # --- BARIS 1 (Atas) --- [TEMA: TREN WAKTU]
     row1_col1, row1_col2 = st.columns(2)
 
     with row1_col1:
@@ -123,25 +123,37 @@ if not df_lite.empty:
                     dict(count=1, label="1 Hari", step="day", stepmode="backward"),
                     dict(count=3, label="3 Hari", step="day", stepmode="backward"),
                     dict(step="all", label="Semua")
-                ]), y=1.06
+                ]), y=0.99
             )
         )
         st.plotly_chart(fig1, use_container_width=True)
 
     with row1_col2:
-        # 2. KANAN ATAS: Bar Chart Top 6 Project
-        top_projects = owner_data.groupby('resource_tags_user_project')['line_item_unblended_cost'].sum().nlargest(6).reset_index()
+        # 2. KANAN ATAS: Line Chart Tren per Product Family (Pindahan dari bawah)
+        # Sekarang mendapat 50% lebar layar, garisnya akan sangat jelas!
+        product_trend = owner_data.groupby(['timestamp', 'product_product_family'])['line_item_unblended_cost'].sum().reset_index()
 
-        fig2 = px.bar(top_projects, x='resource_tags_user_project', y='line_item_unblended_cost',
-                      title=f"2. Top 6 Proyek Termahal ({selected_owner})",
-                      text_auto='.2s', color='line_item_unblended_cost', color_continuous_scale='Blues')
+        fig2 = px.line(product_trend, x='timestamp', y='line_item_unblended_cost', color='product_product_family',
+                       title=f"2. Tren Biaya Tipe Servis ({selected_owner})")
 
-        fig2.update_layout(xaxis_title="Nama Proyek", yaxis_title="Total Biaya (USD)", showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
+        fig2.update_xaxes(
+            rangeslider=dict(visible=True, thickness=0.07),
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1, label="1 Hari", step="day", stepmode="backward"),
+                    dict(count=3, label="3 Hari", step="day", stepmode="backward"),
+                    dict(step="all", label="Semua")
+                ]), y=0.96
+            )
+        )
+        # Legend kita taruh horizontal di bawah grafik agar tidak menutupi garis tren
+        fig2.update_layout(hovermode="x unified", xaxis_title="", yaxis_title="Biaya (USD)",
+                           legend=dict(orientation="h", yanchor="top", y=-0.3, xanchor="center", x=0.5), margin=dict(l=0, r=0, t=40, b=0))
         st.plotly_chart(fig2, use_container_width=True)
 
 
     # ==============================================================================
-    # --- BARIS 2 (Bawah) --- [3 Kolom Dibagi Rata: Rasio 1:1:1]
+    # --- BARIS 2 (Bawah) --- [TEMA: PERINGKAT & PORSI]
     st.markdown("<br>", unsafe_allow_html=True)
     row2_col1, row2_col2, row2_col3 = st.columns(3)
 
@@ -157,38 +169,48 @@ if not df_lite.empty:
         st.plotly_chart(fig3, use_container_width=True)
 
     with row2_col2:
-        # 4. TENGAH BAWAH: Line Chart Tren per Product Family
-        product_trend = owner_data.groupby(['timestamp', 'product_product_family'])['line_item_unblended_cost'].sum().reset_index()
+        # 4. TENGAH BAWAH: Bar Chart Top 6 Project (Pindahan dari atas)
+        # Bentuk batang sangat cocok ditaruh di layout yang lebih sempit (33% lebar layar)
+        top_projects = owner_data.groupby('resource_tags_user_project')['line_item_unblended_cost'].sum().nlargest(6).reset_index()
 
-        fig4 = px.line(product_trend, x='timestamp', y='line_item_unblended_cost', color='product_product_family',
-                       title=f"4. Tren Biaya Tipe Servis ({selected_owner})")
+        fig4 = px.bar(top_projects, x='resource_tags_user_project', y='line_item_unblended_cost',
+                      title=f"4. Top 6 Proyek Termahal ({selected_owner})",
+                      text_auto='.2s', color='line_item_unblended_cost', color_continuous_scale='Blues')
 
-        fig4.update_xaxes(
-            rangeslider=dict(visible=True, thickness=0.04),
-            rangeselector=dict(
-                buttons=list([
-                    dict(count=1, label="1 Hari", step="day", stepmode="backward"),
-                    dict(count=3, label="3 Hari", step="day", stepmode="backward"),
-                    dict(step="all", label="Semua")
-                ]), y=1.06
-            )
-        )
-        # Menaruh legend di bawah agar tidak memakan tempat horizontal
-        fig4.update_layout(hovermode="x unified", xaxis_title="", yaxis_title="Biaya (USD)",
-                           legend=dict(orientation="h", yanchor="top", y=-0.3, xanchor="center", x=0.5), margin=dict(l=0, r=0, t=40, b=0))
+        fig4.update_layout(xaxis_title="Nama Proyek", yaxis_title="Total Biaya (USD)", showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
         st.plotly_chart(fig4, use_container_width=True)
 
     with row2_col3:
-        # 5. KANAN BAWAH (BARU): Donut Chart Porsi Tipe Servis AWS
-        # Memperlihatkan servis apa yang paling banyak "dimakan" selama sebulan
+        # 5. KANAN BAWAH: Donut Chart Porsi Tipe Servis AWS dengan Total di Tengah
         service_dist = owner_data.groupby('product_product_family')['line_item_unblended_cost'].sum().reset_index()
 
-        fig5 = px.pie(service_dist, values='line_item_unblended_cost', names='product_product_family', hole=0.4,
+        # Hitung total biaya khusus untuk divisi ini
+        total_owner_cost = service_dist['line_item_unblended_cost'].sum()
+
+        fig5 = px.pie(service_dist, values='line_item_unblended_cost', names='product_product_family', hole=0.5,
                       title=f"5. Porsi Tipe Servis AWS ({selected_owner})")
 
-        # Tampilkan persentase di dalam donat, legend ditaruh di bawah
-        fig5.update_traces(textposition='inside', textinfo='percent+label', showlegend=False)
-        fig5.update_layout(margin=dict(l=20, r=20, t=40, b=20))
+        # --- KEAJAIBAN HOVER TEMPLATE ADA DI SINI ---
+        fig5.update_traces(
+            textposition='inside',
+            textinfo='percent',
+            showlegend=True,
+            # %{label} akan mengambil nama servis, %{value:,.2f} akan memformat angka dengan koma dan 2 desimal
+            hovertemplate="<b>Servis AWS = %{label}</b><br>Total pengeluaran = $%{value:,.2f}<extra></extra>"
+        )
+
+        # --- MENAMBAHKAN TOTAL DI TENGAH DONAT ---
+        fig5.add_annotation(
+            text=f"TOTAL<br><b>${total_owner_cost:,.0f}</b>",
+            x=0.5, y=0.5, # Posisi tepat di tengah
+            font=dict(size=16, color="white"), # Saya ubah jadi putih kalau tema dashboardmu gelap
+            showarrow=False
+        )
+
+        fig5.update_layout(
+            margin=dict(l=20, r=20, t=60, b=20),
+            legend=dict(orientation="h", yanchor="top", y=-0.1, xanchor="center", x=0.5)
+        )
         st.plotly_chart(fig5, use_container_width=True)
 
 else:
