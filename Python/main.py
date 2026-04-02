@@ -110,25 +110,31 @@ if not df_lite.empty:
                        color_discrete_map={"Actual Cost (Riil)": "#1f77b4", "Predicted Cost (Baseline AI)": "#ff7f0e"},
                        title=f"1. Tren Biaya Keseluruhan: {selected_owner}")
 
-        # --- KUSTOMISASI HOVER FIG 1 ---
         fig1.update_traces(
             hovertemplate="<b>Cost Type = %{data.name}</b><br>Timestamp = %{x|%b %d, %Y, %H:%M}<br>Total Pengeluaran = $%{y:,.4f}<extra></extra>"
         )
 
         fig1.update_layout(
-            hovermode="closest", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            hovermode="closest", legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="right", x=1),
             xaxis_title="Trend Biaya pada bulan Februari 2025", yaxis_title="Total Biaya (USD)",
             margin=dict(l=0, r=0, t=40, b=0)
         )
 
         fig1.update_xaxes(
-            rangeslider=dict(visible=True, thickness=0.04),
+            rangeslider=dict(
+                visible=True,
+                thickness=0.08,  # slightly thicker → bigger grip area
+                yaxis=dict(rangemode="fixed", range=[0, 0]),
+                bgcolor="#260000",
+                bordercolor="white",   # ← makes the grip handles white & visible
+                borderwidth=0         # ← border thickness around the slider
+            ),
             rangeselector=dict(
                 buttons=list([
                     dict(count=1, label="1 Hari", step="day", stepmode="backward"),
                     dict(count=3, label="3 Hari", step="day", stepmode="backward"),
                     dict(step="all", label="Semua")
-                ]), y=0.99
+                ]), y=1
             )
         )
         st.plotly_chart(fig1, use_container_width=True)
@@ -151,7 +157,13 @@ if not df_lite.empty:
         )
 
         fig2.update_xaxes(
-            rangeslider=dict(visible=True, thickness=0.07),
+            rangeslider=dict(
+                visible=True,
+                thickness=0.07,        # slightly thicker for fig2 too
+                bgcolor='#380202',
+                bordercolor="white",   # ← same treatment
+                borderwidth=0
+            ),
             rangeselector=dict(
                 buttons=list([
                     dict(count=1, label="1 Hari", step="day", stepmode="backward"),
