@@ -138,12 +138,7 @@ if not df_lite.empty:
         product_trend = owner_data.groupby(['timestamp', 'product_product_family'])['line_item_unblended_cost'].sum().reset_index()
 
         fig2 = px.line(product_trend, x='timestamp', y='line_item_unblended_cost', color='product_product_family',
-                       title=f"2. Tren Biaya Tipe Servis ({selected_owner})",
-                       labels={
-                           'product_product_family': 'Servis AWS',
-                           'line_item_unblended_cost': 'Total Pengeluaran',
-                           'timestamp': 'Timestamp'
-                       })
+                       title=f"2. Tren Biaya Tipe Servis ({selected_owner})")
 
         # --- KUSTOMISASI HOVER FIG 2 ---
         fig2.update_traces(
@@ -164,6 +159,8 @@ if not df_lite.empty:
                            legend=dict(orientation="h", yanchor="top", y=-0.3, xanchor="center", x=0.5), margin=dict(l=0, r=0, t=40, b=0))
         st.plotly_chart(fig2, use_container_width=True)
 
+
+    # ==============================================================================
     # --- BARIS 2 (Bawah) --- [TEMA: PERINGKAT & PORSI]
     st.markdown("<br>", unsafe_allow_html=True)
     row2_col1, row2_col2, row2_col3 = st.columns(3)
@@ -174,18 +171,14 @@ if not df_lite.empty:
 
         fig3 = px.bar(top_global, x='line_item_unblended_cost', y='resource_tags_user_tech_owner', orientation='h',
                       title="3. 5 Divisi Termahal (Global PT Jalin)",
-                      text_auto='.2s', color='line_item_unblended_cost', color_continuous_scale='Reds',
-                      labels={
-                          'line_item_unblended_cost': 'Total Pengeluaran',
-                          'resource_tags_user_tech_owner': 'Divisi'
-                      })
+                      text_auto='.2s', color='line_item_unblended_cost', color_continuous_scale='Reds')
 
         # --- KUSTOMISASI HOVER FIG 3 ---
         fig3.update_traces(
             hovertemplate="<b>Divisi = %{y}</b><br>Total Pengeluaran = $%{x:,.2f}<extra></extra>"
         )
 
-        fig3.update_layout(yaxis={'categoryorder':'total ascending'}, xaxis_title="Total Biaya (USD)", yaxis_title="Divisi", showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
+        fig3.update_layout(yaxis={'categoryorder':'total ascending'}, xaxis_title="Total Biaya", yaxis_title="", showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
         st.plotly_chart(fig3, use_container_width=True)
 
     with row2_col2:
@@ -197,12 +190,7 @@ if not df_lite.empty:
                       y='line_item_unblended_cost',
                       title=f"4. Top 6 Proyek Termahal ({selected_owner})",
                       text_auto='.2s', color='line_item_unblended_cost',
-                      color_continuous_scale='Blues',
-                      # KUNCI JAWABAN: Menerjemahkan nama kolom untuk Color Bar
-                      labels={
-                          'line_item_unblended_cost': 'Total Pengeluaran',
-                          'resource_tags_user_project': 'Nama Proyek'
-                      })
+                      color_continuous_scale='Blues')
 
         # --- KUSTOMISASI HOVER FIG 4 ---
         fig4.update_traces(
@@ -234,7 +222,7 @@ if not df_lite.empty:
         fig5.add_annotation(
             text=f"TOTAL<br><b>${total_owner_cost:,.0f}</b>",
             x=0.5, y=0.5, # Posisi tepat di tengah
-            font=dict(size=16, color="white"), # Saya ubah jadi putih kalau tema dashboardmu gelap
+            font=dict(size=16, color="dark"), # Saya ubah jadi putih kalau tema dashboardmu gelap
             showarrow=False
         )
 
