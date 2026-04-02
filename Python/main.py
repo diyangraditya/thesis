@@ -5,7 +5,7 @@ from config import TECH_OWNER_KNOWLEDGE
 from dotenv import load_dotenv
 
 # --- KONFIGURASI HALAMAN ---
-st.set_page_config(page_title="Dashboard Cloud Cost - PT Jalin Mayantara", layout="wide")
+st.set_page_config(page_title="Dashboard Cloud Cost - PT Jayantara", layout="wide")
 
 # --- FUNGSI LOAD DATA ---
 @st.cache_data
@@ -26,11 +26,12 @@ def load_data():
 
 df_lite = load_data()
 
-# ==============================================================================
 # --- HEADER & FILTER (TENGAH ATAS) ---
 # Menggunakan HTML untuk menengahkan teks judul dan deskripsi
-st.markdown("<h1 style='text-align: center;'>☁️ Identifikasi Peluang Optimasi Biaya Cloud AWS PT Jayantara pada bulan Februari ☁️ ️</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>☁️ Identifikasi Peluang Optimasi Biaya Cloud AWS PT Jayantara pada Februari 2025 ☁️ ️</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; font-size: 18px; color: gray;'>Dashboard ini menampilkan profil biaya, visualisasi performa, dan insight otomatis berbasis AI untuk setiap divisi (Tech Owner).</p>", unsafe_allow_html=True)
+
+st.markdown("<p style='text-align: center; font-size: 18px; color: gray;'>⚠️ <b>Tambahan Informasi</b> : Data yang digunakan terbatas pada periode bulan Februari 2025 dari tanggal 1-16 dikarenakan keterbatasan dan kualitas data</p>", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True) # Jarak estetik
 
@@ -87,7 +88,7 @@ with col_a2:
 
 # BAGIAN B: VISUALISASI DASHBOARD (Konteks Biaya & Servis)
 st.markdown("---")
-st.header("Bagian B: Visualisasi Performa & Distribusi Biaya")
+st.header("Bagian B: Visualisasi Pengeluaran & Distribusi Biaya")
 
 if not df_lite.empty:
     # Filter data berdasarkan owner (Untuk grafik yang dinamis)
@@ -108,7 +109,7 @@ if not df_lite.empty:
 
         fig1 = px.line(df_melted, x='timestamp', y='Total Cost (USD)', color='Cost Type',
                        color_discrete_map={"Actual Cost (Riil)": "#1f77b4", "Predicted Cost (Baseline AI)": "#ff7f0e"},
-                       title=f"1. Tren Biaya Keseluruhan: {selected_owner}")
+                       title=f"1. Tren Total Pengeluaran Biaya: Divisi {selected_owner}")
 
         fig1.update_traces(
             hovertemplate="<b>Cost Type = %{data.name}</b><br>Timestamp = %{x|%b %d, %Y, %H:%M}<br>Total Pengeluaran = $%{y:,.4f}<extra></extra>"
@@ -117,13 +118,13 @@ if not df_lite.empty:
         fig1.update_layout(
             hovermode="closest", legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="right", x=1),
             xaxis_title="Trend Biaya pada bulan Februari 2025", yaxis_title="Total Biaya (USD)",
-            margin=dict(l=0, r=0, t=40, b=0)
+            margin=dict(l=0, r=0, t=40, b=50)
         )
 
         fig1.update_xaxes(
             rangeslider=dict(
                 visible=True,
-                thickness=0.08,  # slightly thicker → bigger grip area
+                thickness=0.06,  # slightly thicker → bigger grip area
                 yaxis=dict(rangemode="fixed", range=[0, 0]),
                 bgcolor="#260000",
                 bordercolor="white",   # ← makes the grip handles white & visible
@@ -144,24 +145,24 @@ if not df_lite.empty:
         product_trend = owner_data.groupby(['timestamp', 'product_product_family'])['line_item_unblended_cost'].sum().reset_index()
 
         fig2 = px.line(product_trend, x='timestamp', y='line_item_unblended_cost', color='product_product_family',
-                       title=f"2. Tren Biaya Tipe Servis ({selected_owner})",
+                       title=f"2. Tren Pengeluaran Biaya Tipe-tipe Servis AWS: Divisi {selected_owner}",
                        labels={
                            'product_product_family': 'Servis AWS',
                            'line_item_unblended_cost': 'Total Pengeluaran',
                            'timestamp': 'Timestamp'
                        })
 
-        # --- KUSTOMISASI HOVER FIG 2 ---
+        # --- KUSTOMISASI HOVER FIG 2
         fig2.update_traces(
-            hovertemplate="<b>Servis AWS = %{data.name}</b><br>Timestamp = %{x|%b %d, %Y, %H:%M}<br>Total Pengeluaran = $%{y:,.4f}<extra></extra>"
+            hovertemplate="<b>Servis AWS = %{data.name}</b><br>Total Pengeluaran = $%{y:,.4f}<extra></extra>"
         )
 
         fig2.update_xaxes(
             rangeslider=dict(
                 visible=True,
-                thickness=0.07,        # slightly thicker for fig2 too
-                bgcolor='#380202',
-                bordercolor="white",   # ← same treatment
+                thickness=0.06,
+                bgcolor='#260000',
+                bordercolor="white",
                 borderwidth=0
             ),
             rangeselector=dict(
@@ -172,20 +173,24 @@ if not df_lite.empty:
                 ]), y=0.96
             )
         )
-        fig2.update_layout(hovermode="closest", xaxis_title="", yaxis_title="Biaya (USD)",
-                           legend=dict(orientation="h", yanchor="top", y=-0.3, xanchor="center", x=0.5), margin=dict(l=0, r=0, t=40, b=0))
+
+        fig2.update_layout(hovermode="x unified", xaxis_title="", yaxis_title="Biaya (USD)",
+                           legend=dict(orientation="h", yanchor="top", y=-0.3, xanchor="center", x=0.5),
+                           margin=dict(l=0, r=0, t=60, b=0))
         st.plotly_chart(fig2, use_container_width=True)
 
+    # ==============================================================================
     # --- BARIS 2 (Bawah) --- [TEMA: PERINGKAT & PORSI]
     st.markdown("<br>", unsafe_allow_html=True)
-    row2_col1, row2_col2, row2_col3 = st.columns(3)
+    # Mengubah layout menjadi 4 kolom yang dibagi rata
+    row2_col1, row2_col2, row2_col3, row2_col4 = st.columns(4)
 
     with row2_col1:
         # 3. KIRI BAWAH: Horizontal Bar Chart Top 5 Tech Owner GLOBAL (Statis)
         top_global = df_lite.groupby('resource_tags_user_tech_owner')['line_item_unblended_cost'].sum().nlargest(5).reset_index()
 
         fig3 = px.bar(top_global, x='line_item_unblended_cost', y='resource_tags_user_tech_owner', orientation='h',
-                      title="3. 5 Divisi Termahal (Global PT Jalin)",
+                      title="3. Top 5 Divisi PT Jayantara dengan Pengeluaran Terbesar",
                       text_auto='.2s', color='line_item_unblended_cost', color_continuous_scale='Reds',
                       labels={
                           'line_item_unblended_cost': 'Total Pengeluaran',
@@ -197,17 +202,17 @@ if not df_lite.empty:
             hovertemplate="<b>Divisi = %{y}</b><br>Total Pengeluaran = $%{x:,.2f}<extra></extra>"
         )
 
-        fig3.update_layout(yaxis={'categoryorder':'total ascending'}, xaxis_title="Total Biaya (USD)", yaxis_title="Divisi", showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
+        fig3.update_layout(yaxis={'categoryorder':'total ascending'}, xaxis_title="Total Biaya (USD)", yaxis_title="Divisi", showlegend=False, margin=dict(l=0, r=0, t=60, b=0))
         st.plotly_chart(fig3, use_container_width=True)
 
     with row2_col2:
-        # 4. TENGAH BAWAH: Bar Chart Top 6 Project
+        # 4. TENGAH BAWAH KIRI: Bar Chart Top 6 Project (Dinamis per Divisi)
         top_projects = owner_data.groupby('resource_tags_user_project')['line_item_unblended_cost'].sum().nlargest(6).reset_index()
 
         fig4 = px.bar(top_projects,
                       x='resource_tags_user_project',
                       y='line_item_unblended_cost',
-                      title=f"4. Top 6 Proyek Termahal ({selected_owner})",
+                      title=f"4. Top 6 Proyek Paling Boros Biaya dari Divisi {selected_owner}",
                       text_auto='.2s', color='line_item_unblended_cost',
                       color_continuous_scale='Blues',
                       # KUNCI JAWABAN: Menerjemahkan nama kolom untuk Color Bar
@@ -221,21 +226,43 @@ if not df_lite.empty:
             hovertemplate="<b>Project = %{x}</b><br>Total Pengeluaran = $%{y:,.2f}<extra></extra>"
         )
 
-        fig4.update_layout(xaxis_title="Nama Proyek", yaxis_title="Total Biaya (USD)", showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
+        fig4.update_layout(xaxis_title="Nama Proyek", yaxis_title="Total Biaya (USD)", showlegend=False, margin=dict(l=0, r=0, t=60, b=0))
         st.plotly_chart(fig4, use_container_width=True)
 
     with row2_col3:
-        # 5. KANAN BAWAH: Donut Chart Porsi Tipe Servis AWS dengan Total di Tengah
+        # 5. TENGAH BAWAH KANAN: Horizontal Bar Chart Top 5 Servis AWS GLOBAL (Statis)
+        # Menggunakan df_lite agar memuat data seluruh PT Jalin, bukan per divisi
+        top_services_global = df_lite.groupby('product_product_family')['line_item_unblended_cost'].sum().nlargest(5).reset_index()
+
+        fig5 = px.bar(top_services_global, x='line_item_unblended_cost', y='product_product_family', orientation='h',
+                      title="5. Top 5 Pengeluaran Servis AWS Terboros PT Jayantara",
+                      text_auto='.2s', color='line_item_unblended_cost', color_continuous_scale='Greens',
+                      labels={
+                          'line_item_unblended_cost': 'Total Pengeluaran',
+                          'product_product_family': 'Servis AWS'
+                      })
+
+        # --- KUSTOMISASI HOVER FIG 5 ---
+        fig5.update_traces(
+            hovertemplate="<b>Servis AWS = %{y}</b><br>Total Pengeluaran = $%{x:,.2f}<extra></extra>"
+        )
+
+        fig5.update_layout(yaxis={'categoryorder':'total ascending'}, xaxis_title="Total Biaya (USD)", yaxis_title="Servis AWS", showlegend=False, margin=dict(l=0, r=0, t=60, b=0))
+        st.plotly_chart(fig5, use_container_width=True)
+
+    with row2_col4:
+        # 6. KANAN BAWAH: Donut Chart Porsi Tipe Servis AWS dengan Total di Tengah (Dinamis per Divisi)
+        # Berubah nama dari fig5 menjadi fig6
         service_dist = owner_data.groupby('product_product_family')['line_item_unblended_cost'].sum().reset_index()
 
         # Hitung total biaya khusus untuk divisi ini
         total_owner_cost = service_dist['line_item_unblended_cost'].sum()
 
-        fig5 = px.pie(service_dist, values='line_item_unblended_cost', names='product_product_family', hole=0.5,
-                      title=f"5. Porsi Tipe Servis AWS ({selected_owner})")
+        fig6 = px.pie(service_dist, values='line_item_unblended_cost', names='product_product_family', hole=0.5,
+                      title=f"6. Porsi Biaya Servis AWS Divisi {selected_owner}")
 
-        # --- KUSTOMISASI HOVER FIG 5 ---
-        fig5.update_traces(
+        # --- KUSTOMISASI HOVER FIG 6 ---
+        fig6.update_traces(
             textposition='inside',
             textinfo='percent',
             showlegend=True,
@@ -243,21 +270,18 @@ if not df_lite.empty:
         )
 
         # --- MENAMBAHKAN TOTAL DI TENGAH DONAT ---
-        fig5.add_annotation(
+        fig6.add_annotation(
             text=f"TOTAL<br><b>${total_owner_cost:,.0f}</b>",
             x=0.5, y=0.5, # Posisi tepat di tengah
             font=dict(size=16, color="white"), # Saya ubah jadi putih kalau tema dashboardmu gelap
             showarrow=False
         )
 
-        fig5.update_layout(
+        fig6.update_layout(
             margin=dict(l=20, r=20, t=60, b=20),
             legend=dict(orientation="h", yanchor="top", y=-0.1, xanchor="center", x=0.5)
         )
-        st.plotly_chart(fig5, use_container_width=True)
-
-else:
-    st.info("Grafik akan muncul di sini setelah data CSV di-load.")
+        st.plotly_chart(fig6, use_container_width=True)
 
 # BAGIAN C: NARASI AI (PLACEHOLDER SEMENTARA)
 st.markdown("---")
