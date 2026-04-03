@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from config import TECH_OWNER_KNOWLEDGE
 # from dotenv import load_dotenv # Tidak wajib untuk UI mockup
 
-# --- FUNGSI LOAD DATA (Jalan sekali di awal) ---
+# --- FUNGSI LOAD DATA ---
 try:
     df_lite = pd.read_csv("../cleaned-datasets/dashboard_data_FULL.csv")
     df_lite['timestamp'] = pd.to_datetime({

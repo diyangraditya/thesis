@@ -1,8 +1,19 @@
+import os
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from config import TECH_OWNER_KNOWLEDGE
+
+# export GEMINI_API_KEY = "GEMINI_API_KEY"
+from google import genai
 from dotenv import load_dotenv
+from config import TECH_OWNER_KNOWLEDGE
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+OR_API_KEY = os.getenv("OR_API_KEY")
+
+client = genai.Client()
 
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Dashboard Cloud Cost - PT Jayantara", layout="wide")
@@ -283,26 +294,85 @@ if not df_lite.empty:
         )
         st.plotly_chart(fig6, use_container_width=True)
 
-# BAGIAN C: NARASI AI (PLACEHOLDER SEMENTARA)
+# ==============================================================================
+# BAGIAN C: NARASI AI (INTEGRASI GEMINI API)
 st.markdown("---")
 st.header("🤖 AI Insight & Evaluasi Efisiensi")
 
-# Membuat kotak dengan warna latar belakang agar menonjol seperti output AI
-st.info(f"""
-**(INI ADALAH TEKS SEMENTARA (MOCKUP))**
+# UI: Dropdown Model dan Tombol Generate
+col_model, col_btn, col_kosong = st.columns([1, 1, 2])
+with col_model:
+    selected_model_ui = st.selectbox(
+        "Pilih Model AI:",
+        ["Gemini 3.1 Flash (Cepat & Ringan)", "Gemini 3.1 Pro (Analisis Mendalam)"],
+        label_visibility="collapsed"
+    )
+    # Mapping dari UI ke nama model API resmi
+    api_model_name = "gemini-3.1-flash-review" if "Flash" in selected_model_ui else "gemini-3.1-pro-review"
 
-Berdasarkan analisis data dari Bagian A (Profil {selected_owner}) dan Bagian B (Grafik Biaya), berikut adalah insight efisiensi operasional:
+with col_btn:
+    generate_btn = st.button("✨ Generate Insight", type="primary", use_container_width=True)
 
-**1. Analisis Efisiensi:**
-Secara umum, divisi **{selected_owner}** menunjukkan pola pengeluaran yang [**Efisiensi Terjaga / Terdapat Anomali**]. Terdapat deviasi biaya sebesar X% dibandingkan dengan prediksi baseline pada tanggal [Tanggal Anomali].
+st.markdown("<br>", unsafe_allow_html=True)
 
-**2. Identifikasi Pemborosan (Technical Root Cause):**
-Lonjakan biaya tersebut dipicu oleh tingginya aktivitas operasi **[Nama Operasi, misal: InterZone-Out]** pada layanan **[Nama Produk, misal: Data Transfer]**. Berdasarkan *scope* pekerjaan {selected_owner} yang fokus pada **{info['scope']}**, aktivitas ini kemungkinan berasal dari proyek **[Nama Proyek, misal: SIMPKB]** yang sedang melakukan sinkronisasi data antar zona secara masif.
+# LOGIKA GENERATE AI
+if generate_btn:
+    if not GEMINI_API_KEY:
+        st.error("⚠️ API Key Gemini belum ditemukan. Pastikan sudah di-set di file .env!")
+    elif df_lite.empty:
+        st.warning("⚠️ Data CSV kosong. AI butuh data untuk dianalisis.")
+    else:
+        # 1. Siapkan Data Konteks untuk Prompt (Data Preparation)
+        owner_data = df_lite[df_lite['resource_tags_user_tech_owner'] == selected_owner]
+        total_cost = owner_data['line_item_unblended_cost'].sum()
 
-**3. Rekomendasi Optimasi Actionable:**
-* **Arsitektur:** Evaluasi arsitektur jaringan proyek [Nama Proyek]. Pastikan *resource* yang sering berkomunikasi diletakkan pada *Availability Zone* (AZ) yang sama untuk memangkas biaya *InterZone*.
-* **Rightsizing:** Pertimbangkan untuk menghentikan layanan *[Nama Layanan]* jika tidak diperlukan di luar jam kerja.
-* **Tagging:** Tingkatkan kedisiplinan pelabelan (*tagging*) untuk mempermudah alokasi biaya di masa depan.
-""")
+        # Ekstrak top 3 project untuk konteks AI
+        top_projects_ai = owner_data.groupby('resource_tags_user_project')['line_item_unblended_cost'].sum().nlargest(3)
+        top_proj_text = "\n".join([f"- {proj}: ${cost:,.2f}" for proj, cost in top_projects_ai.items()])
 
-st.caption("Catatan: Narasi di atas akan digenerate secara otomatis (dinamis) oleh API LLM berdasarkan data aktual saat pengembangan dilanjutkan.")
+        # Ekstrak top 3 servis untuk konteks AI
+        top_services_ai = owner_data.groupby('product_product_family')['line_item_unblended_cost'].sum().nlargest(3)
+        top_serv_text = "\n".join([f"- {serv}: ${cost:,.2f}" for serv, cost in top_services_ai.items()])
+
+        # 2. Merakit Prompt Engineering
+        ai_prompt = f"""
+        Anda adalah seorang Cloud FinOps Expert Senior di PT Jayantara.
+        Tugas Anda adalah memberikan 'AI Insight & Evaluasi Efisiensi' biaya AWS untuk divisi {selected_owner} pada bulan Februari 2025.
+        
+        Berikut adalah konteks data divisi tersebut:
+        - Scope Pekerjaan Divisi: {info['scope']}
+        - Total Pengeluaran Bulan Ini: ${total_cost:,.2f}
+        
+        3 Proyek dengan Pengeluaran Terbesar:
+        {top_proj_text}
+        
+        3 Servis AWS dengan Pengeluaran Terbesar:
+        {top_serv_text}
+        
+        Berikan analisis yang tajam, profesional, dan actionable dengan format Markdown berikut (tanpa preamble/pembukaan kata-kata lain, langsung ke format):
+        
+        **1. Analisis Efisiensi:**
+        (Evaluasi apakah pengeluaran ini wajar sesuai scope pekerjaan divisinya. Adakah konsentrasi biaya yang tidak wajar pada servis/proyek tertentu?)
+        
+        **2. Identifikasi Pemborosan (Technical Root Cause):**
+        (Berikan asumsi teknis yang logis berdasarkan jenis servis termahal dan proyeknya. Gunakan istilah teknis AWS seperti EC2, Data Transfer, Storage, dll yang relevan).
+        
+        **3. Rekomendasi Optimasi Actionable:**
+        (Berikan 3 bullet points rekomendasi teknis yang SANGAT spesifik untuk mengoptimalkan proyek dan servis dominan di atas).
+        
+        Gunakan bahasa Indonesia yang profesional, tegas, dan langsung pada intinya (seperti laporan eksekutif).
+        """
+
+        # 3. Eksekusi Panggilan API dengan animasi loading
+        with st.spinner(f"🤖 Mengontak {selected_model_ui} untuk menganalisis data {selected_owner}..."):
+            try:
+                # Panggil modelnya
+                model = genai.GenerativeModel(api_model_name)
+                response = model.generate_content(ai_prompt)
+
+                # Tampilkan hasilnya dalam kotak yang rapi
+                st.info(response.text)
+                st.toast('Insight berhasil di-generate!', icon='✅')
+
+            except Exception as e:
+                st.error(f"❌ Terjadi kesalahan saat memanggil API: {e}")
