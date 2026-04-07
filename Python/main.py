@@ -3,7 +3,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# export GEMINI_API_KEY = "GEMINI_API_KEY"
 from google import genai
 from dotenv import load_dotenv
 from config import TECH_OWNER_KNOWLEDGE
@@ -334,8 +333,8 @@ if generate_btn:
         top_services_ai = owner_data.groupby('product_product_family')['line_item_unblended_cost'].sum().nlargest(3)
         top_serv_text = "\n".join([f"- {serv}: ${cost:,.2f}" for serv, cost in top_services_ai.items()])
 
-        # 2. Merakit Prompt Engineering
-        ai_prompt = f"""
+        # 2. Prompt
+        the_prompt = f"""
         Anda adalah seorang Cloud FinOps Expert Senior di PT Jayantara.
         Tugas Anda adalah memberikan 'AI Insight & Evaluasi Efisiensi' biaya AWS untuk divisi {selected_owner} pada bulan Februari 2025.
         
@@ -368,7 +367,7 @@ if generate_btn:
             try:
                 # Panggil modelnya
                 model = genai.GenerativeModel(api_model_name)
-                response = model.generate_content(ai_prompt)
+                response = client.models.generate_content(the_prompt)
 
                 # Tampilkan hasilnya dalam kotak yang rapi
                 st.info(response.text)
