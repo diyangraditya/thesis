@@ -23,7 +23,7 @@ else:
     client = None
 
 # --- KONFIGURASI HALAMAN ---
-st.set_page_config(page_title="Dashboard Cloud Cost - PT Jayantara", layout="wide")
+st.set_page_config(page_title="Dashboard Cloud Cost - PT Jalin Mayantara", layout="wide")
 
 # --- LOAD DATA ---
 @st.cache_data
@@ -53,7 +53,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 col_kosong1, col_filter, col_kosong2 = st.columns([1, 2, 1])
 
 with col_filter:
-    st.markdown("<h4 style='text-align: center;'>🔍 Pilih Divisi yang Ingin Dianalisis:</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center;'>Pilih Divisi yang Ingin Dianalisis:</h4>", unsafe_allow_html=True)
 
     selected_owner = st.selectbox("Pilih Divisi (Tech Owner):",
                                   list(TECH_OWNER_KNOWLEDGE.keys()),
@@ -228,9 +228,8 @@ with col_model:
     selected_model_ui = st.selectbox(
         "Pilih Model AI:",
         [
-            "Gemini 2.5 Flash (Cepat & Ringan)",
-            "Gemini 2.5 Pro (Analisis Mendalam)",
-            "Minimax 2.5 (OpenRouter Gratis)"
+            "Gemini 2.5 Flash",
+            "GPT OSS 120b"
         ],
         label_visibility="collapsed"
     )
@@ -238,11 +237,10 @@ with col_model:
     # ROUTING MODEL
     if "Gemini" in selected_model_ui:
         api_provider = "gemini"
-        # Map ke model string resmi (kamu bisa ganti jadi 2.0-flash jika 2.5 belum rilis resmi di akunmu)
-        api_model_name = "gemini-2.5-flash" if "Flash" in selected_model_ui else "gemini-2.5-pro"
+        api_model_name = "gemini-2.5-flash"
     else:
         api_provider = "openrouter"
-        api_model_name = "minimax/minimax-m2.5:free"
+        api_model_name = "openai/gpt-oss-120b:free"
 
 with col_btn:
     generate_btn = st.button("✨ Generate Insight", type="primary", use_container_width=True)
