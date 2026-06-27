@@ -1,6 +1,5 @@
 import os
 import requests
-import json
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -16,9 +15,21 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 OR_API_KEY = os.getenv("OR_API_KEY")
 
-# Inisialisasi Client Gemini
+# Model ID GPT OSS dari OR
+OPENROUTER_GPT_OSS_MODEL = os.getenv(
+    "OPENROUTER_GPT_OSS_MODEL",
+    "openai/gpt-oss-120b:free"
+)
+
+# MODEL ID NVIDIA Nemotron dari OR
+OPENROUTER_NEMOTRON_MODEL = os.getenv(
+    "OPENROUTER_NEMOTRON_MODEL",
+    "nvidia/nemotron-3-nano-30b-a3b:free"
+)
+
+# Client Gemini
 if GEMINI_API_KEY:
-    client = genai.Client()
+    client = genai.Client(api_key=GEMINI_API_KEY)
 else:
     client = None
 
@@ -29,7 +40,7 @@ st.set_page_config(page_title="Dashboard Cloud Cost - PT Jalin Mayantara", layou
 @st.cache_data
 def load_data():
     try:
-        df_lite = pd.read_csv("../cleaned-datasets/dashboard_data_FULL.csv")
+        df_lite = pd.read_csv("../cleaned-datasets/dashboard_data_FULL-1.csv")
         df_lite['timestamp'] = pd.to_datetime({
             'year': 2025, 'month': 2,
             'day': df_lite['day_of_month'], 'hour': df_lite['hour_of_day']
@@ -46,7 +57,7 @@ st.markdown("<h1 style='text-align: center;'>☁️ Identifikasi Peluang Optimas
 
 st.markdown("<p style='text-align: center; font-size: 18px; color: gray;'>Dashboard ini menampilkan profil biaya, visualisasi performa, dan insight otomatis berbasis AI untuk setiap divisi (Tech Owner).</p>", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align: center; font-size: 18px; color: gray;'>⚠️ <b>Tambahan Informasi</b> : Data yang digunakan terbatas pada periode bulan Februari 2025 dari tanggal 1-16 dikarenakan keterbatasan dan kualitas data</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 18px; color: gray;'>⚠️ <b>Tambahan Informasi</b> : Data yang digunakan terbatas pada periode bulan Februari 2025 dari tanggal 1-16 dikarenakan keterbatasan kualitas data</p>", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -81,17 +92,52 @@ with col_a1:
 
 with col_a2:
     st.markdown("### Ringkasan Biaya")
-    if not df_lite.empty:
-        owner_data = df_lite[df_lite['resource_tags_user_tech_owner'] == selected_owner]
-        total_cost = owner_data['line_item_unblended_cost'].sum()
-        unique_days = owner_data['day_of_month'].nunique()
-        avg_daily_cost = total_cost / unique_days if unique_days > 0 else 0
 
-        st.metric(label="Total Biaya (Actual)", value=f"${total_cost:,.2f}")
-        st.metric(label="Rata-rata Biaya per Hari", value=f"${avg_daily_cost:,.2f}")
+    if not df_lite.empty:
+        owner_data = df_lite[
+            df_lite['resource_tags_user_tech_owner'] == selected_owner
+        ].copy()
+
+        total_actual_cost = owner_data['line_item_unblended_cost'].sum()
+        total_predicted_cost = owner_data['predicted_cost'].sum()
+
+        cost_difference = total_actual_cost - total_predicted_cost
+
+        unique_days = owner_data['day_of_month'].nunique()
+        avg_daily_cost = (
+            total_actual_cost / unique_days
+            if unique_days > 0 else 0
+        )
+
+        st.metric(
+            label="Total Biaya Aktual",
+            value=f"${total_actual_cost:,.2f}"
+        )
+
+        st.metric(
+            label="Estimasi Biaya Random Forest",
+            value=f"${total_predicted_cost:,.2f}"
+        )
+
+        st.metric(
+            label="Selisih Aktual terhadap Estimasi",
+            value=f"${cost_difference:,.2f}",
+            help=(
+                "Nilai positif menunjukkan biaya aktual lebih tinggi "
+                "daripada estimasi model Random Forest."
+            )
+        )
+
+        st.metric(
+            label="Rata-rata Biaya per Hari",
+            value=f"${avg_daily_cost:,.2f}"
+        )
+
     else:
-        st.metric(label="Total Biaya (Actual)", value="$0.00")
-        st.metric(label="Rata-rata Biaya per Hari", value="$0.00")
+        st.metric("Total Biaya Aktual", "$0.00")
+        st.metric("Estimasi Biaya Random Forest", "$0.00")
+        st.metric("Selisih Aktual terhadap Estimasi", "$0.00")
+        st.metric("Rata-rata Biaya per Hari", "$0.00")
 
 # BAGIAN B: VISUALISASI DASHBOARD
 st.markdown("---")
@@ -110,12 +156,12 @@ if not df_lite.empty:
                                      var_name='Cost Type',
                                      value_name='Total Cost (USD)')
 
-        df_melted['Cost Type'] = df_melted['Cost Type'].replace({'line_item_unblended_cost': 'Actual Cost (Riil)',
-                                                                 'predicted_cost': 'Predicted Cost (Baseline AI)'})
+        df_melted['Cost Type'] = df_melted['Cost Type'].replace({'line_item_unblended_cost': 'Biaya Aktual',
+                                                                 'predicted_cost': 'Estimasi Biaya Random Forest'})
 
         fig1 = px.line(df_melted,
                        x='timestamp', y='Total Cost (USD)',
-                       color='Cost Type', color_discrete_map={"Actual Cost (Riil)": "#1f77b4", "Predicted Cost (Baseline AI)": "#ff7f0e"}, title=f"1. Tren Total Pengeluaran Biaya: Divisi {selected_owner}")
+                       color='Cost Type', color_discrete_map={"Biaya Aktual": "#1f77b4", "Estimasi Biaya Random Forest": "#ff7f0e"}, title=f"1. Tren Total Pengeluaran Biaya: Divisi {selected_owner}")
 
         fig1.update_traces(hovertemplate="<b>Cost Type = %{data.name}</b><br>Timestamp = %{x|%b %d, %Y, %H:%M}<br>Total Pengeluaran = $%{y:,.4f}<extra></extra>")
 
@@ -186,7 +232,7 @@ if not df_lite.empty:
 
         fig5 = px.bar(top_services_global, x='line_item_unblended_cost',
                       y='product_product_family', orientation='h',
-                      title="5. Top 5 Pengeluaran Servis AWS Terboros PT Jayantara", text_auto='.2s',
+                      title="5. Top 5 Pengeluaran Servis AWS Terboros PT Jalin Mayantara", text_auto='.2s',
                       color='line_item_unblended_cost', color_continuous_scale='Greens',
                       labels={'line_item_unblended_cost': 'Total Pengeluaran', 'product_product_family': 'Servis AWS'})
 
@@ -218,133 +264,420 @@ if not df_lite.empty:
 
         st.plotly_chart(fig6, use_container_width=True)
 
+# Helper functions: untuk menghindari pengulangan kode
+def format_currency_list(series, max_items=3):
+    """Mengubah Series biaya menjadi daftar teks untuk prompt LLM."""
+    if series.empty:
+        return "- Data tidak tersedia"
+
+    lines = []
+    for label, value in series.head(max_items).items():
+        label_text = str(label) if pd.notna(label) else "Tidak teridentifikasi"
+        lines.append(f"- {label_text}: ${value:,.2f}")
+
+    return "\n".join(lines)
+
+
+def build_deviation_summary(dataframe, group_column, top_n=3):
+    """
+    Menghitung perbandingan biaya aktual dan estimasi Random Forest
+    pada suatu kelompok, misalnya proyek, layanan, atau operasi AWS.
+    """
+    summary = (
+        dataframe
+        .groupby(group_column)[
+            ['line_item_unblended_cost', 'predicted_cost']
+        ]
+        .sum()
+        .reset_index()
+    )
+
+    summary['selisih'] = (
+        summary['line_item_unblended_cost']
+        - summary['predicted_cost']
+    )
+
+    summary['selisih_abs'] = summary['selisih'].abs()
+
+    return summary.sort_values(
+        by='selisih_abs',
+        ascending=False
+    ).head(top_n)
+
+
+def format_deviation_list(summary_df, label_column):
+    """Membentuk daftar deviasi biaya untuk konteks LLM."""
+    if summary_df.empty:
+        return "- Data deviasi tidak tersedia"
+
+    lines = []
+
+    for _, row in summary_df.iterrows():
+        label = str(row[label_column])
+        actual = row['line_item_unblended_cost']
+        predicted = row['predicted_cost']
+        difference = row['selisih']
+
+        status = (
+            "lebih tinggi dari estimasi"
+            if difference > 0
+            else "lebih rendah dari estimasi"
+        )
+
+        lines.append(
+            f"- {label}: aktual ${actual:,.2f}, "
+            f"estimasi ${predicted:,.2f}, "
+            f"selisih ${difference:,.2f} ({status})"
+        )
+
+    return "\n".join(lines)
+
+def call_openrouter_model(
+    model_name: str,
+    system_instruction: str,
+    analysis_prompt: str
+) -> str:
+    """
+    Memanggil model generatif melalui OpenRouter dan mengembalikan respons naratif.
+    """
+    response = requests.post(
+        url="https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {OR_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:8501",
+            "X-OpenRouter-Title": (
+                "Cloud Cost Optimization Prototype"
+            )
+        },
+        json={
+            "model": model_name,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_instruction
+                },
+                {
+                    "role": "user",
+                    "content": analysis_prompt
+                }
+            ],
+            "temperature": 0.2,
+            "max_tokens": 1000
+        },
+        timeout=60
+    )
+
+    if response.status_code != 200:
+        try:
+            error_detail = response.json()
+        except ValueError:
+            error_detail = response.text
+
+        raise requests.exceptions.RequestException(
+            f"OpenRouter Error {response.status_code}: "
+            f"{error_detail}"
+        )
+
+    response_json = response.json()
+
+    final_insight = (
+        response_json
+        .get("choices", [{}])[0]
+        .get("message", {})
+        .get("content")
+    )
+
+    if not final_insight:
+        raise ValueError(
+            "Respons OpenRouter tidak mengandung konten insight."
+        )
+
+    return final_insight
+
 # BAGIAN C: INTEGRASI AI
 st.markdown("---")
-st.header("🤖 AI Insight & Evaluasi Efisiensi")
+st.header("🤖 AI Insight dan Evaluasi Efisiensi")
 
-# UI: Dropdown Model dan Tombol Generate
-col_model, col_btn, col_kosong = st.columns([1, 1, 2])
+col_model, col_btn, col_info = st.columns([1, 1, 2])
+
+
 with col_model:
     selected_model_ui = st.selectbox(
         "Pilih Model AI:",
         [
             "Gemini 2.5 Flash",
-            "GPT OSS 120b"
+            "GPT-OSS 120B",
+            "NVIDIA Nemotron 3 Nano"
         ],
         label_visibility="collapsed"
     )
 
-    # ROUTING MODEL
-    if "Gemini" in selected_model_ui:
-        api_provider = "gemini"
-        api_model_name = "gemini-2.5-flash"
-    else:
-        api_provider = "openrouter"
-        api_model_name = "openai/gpt-oss-120b:free"
+    MODEL_CONFIG = {
+        "Gemini 2.5 Flash": {
+            "provider": "gemini",
+            "model": "gemini-2.5-flash"
+        },
+        "GPT-OSS 120B": {
+            "provider": "openrouter",
+            "model": OPENROUTER_GPT_OSS_MODEL
+        },
+        "NVIDIA Nemotron 3 Nano": {
+            "provider": "openrouter",
+            "model": OPENROUTER_NEMOTRON_MODEL
+        }
+    }
+
+    selected_model_config = MODEL_CONFIG[selected_model_ui]
+    api_provider = selected_model_config["provider"]
+    api_model_name = selected_model_config["model"]
 
 with col_btn:
-    generate_btn = st.button("✨ Generate Insight", type="primary", use_container_width=True)
+    generate_btn = st.button(
+        "✨ Generate Insight",
+        type="primary",
+        use_container_width=True
+    )
+
+with col_info:
+    st.caption(
+        "Insight AI menggunakan ringkasan biaya aktual, estimasi "
+        "Random Forest, deviasi biaya, serta konteks operasional divisi."
+    )
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- GENERATE AI ---
 if generate_btn:
-    # 1. Pengecekan Kunci API berdasarkan Provider yang dipilih
+    # 1. Validasi ketersediaan API key
     if api_provider == "gemini" and not client:
-        st.error("⚠️ API Key Gemini belum ditemukan. Pastikan GEMINI_API_KEY sudah di-set di file .env!")
+        st.error(
+            "API Key Gemini tidak ditemukan. "
+            "Pastikan GEMINI_API_KEY telah diatur pada file .env."
+        )
         st.stop()
-    elif api_provider == "openrouter" and not OR_API_KEY:
-        st.error("⚠️ API Key OpenRouter belum ditemukan. Pastikan OR_API_KEY sudah di-set di file .env!")
+
+    if api_provider == "openrouter" and not OR_API_KEY:
+        st.error(
+            "API Key OpenRouter tidak ditemukan. "
+            "Pastikan OR_API_KEY telah diatur pada file .env."
+        )
         st.stop()
 
     if df_lite.empty:
-        st.warning("⚠️ Data CSV kosong. AI butuh data untuk dianalisis.")
+        st.warning(
+            "Dataset dashboard tidak tersedia. "
+            "Insight AI tidak dapat dibuat tanpa data biaya."
+        )
         st.stop()
 
-    # 2. Siapkan Data Konteks untuk Prompt (Data Preparation)
-    owner_data = df_lite[df_lite['resource_tags_user_tech_owner'] == selected_owner]
-    total_cost = owner_data['line_item_unblended_cost'].sum()
+    if 'predicted_cost' not in df_lite.columns:
+        st.error(
+            "Kolom predicted_cost tidak ditemukan. "
+            "Pastikan dataset dashboard telah memuat hasil prediksi "
+            "model Random Forest."
+        )
+        st.stop()
 
-    top_projects_ai = owner_data.groupby('resource_tags_user_project')['line_item_unblended_cost'].sum().nlargest(3)
-    top_proj_text = "\n".join([f"- {proj}: ${cost:,.2f}" for proj, cost in top_projects_ai.items()])
+    # 2. Menyiapkan data divisi terpilih
+    owner_data = df_lite[
+        df_lite['resource_tags_user_tech_owner'] == selected_owner
+    ].copy()
 
-    top_services_ai = owner_data.groupby('product_product_family')['line_item_unblended_cost'].sum().nlargest(3)
-    top_serv_text = "\n".join([f"- {serv}: ${cost:,.2f}" for serv, cost in top_services_ai.items()])
+    if owner_data.empty:
+        st.warning(
+            f"Tidak ditemukan data biaya untuk divisi {selected_owner}."
+        )
+        st.stop()
 
-    # 3. Merakit Prompt Engineering
-    the_prompt = f"""
-    Anda adalah seorang Cloud FinOps Expert Senior di PT Jayantara yang memiliki pemahaman tajam dalam merancang sistem yang efisien dan tidak boros biaya.
-    Tugas Anda adalah memberikan 'AI Insight & Evaluasi Efisiensi' biaya AWS untuk divisi {selected_owner} pada bulan Februari 2025.
-    
-    Berikut adalah konteks data divisi tersebut:
-    - Scope Pekerjaan Divisi: {info['scope']}
-    - Total Pengeluaran Bulan Ini: ${total_cost:,.2f}
-    
-    3 Proyek dengan Pengeluaran Terbesar:
-    {top_proj_text}
-    
-    3 Servis AWS dengan Pengeluaran Terbesar:
-    {top_serv_text}
-    
-    Berikan analisis yang tajam, profesional, dan actionable dengan format Markdown berikut (tanpa preamble/pembukaan kata-kata lain, langsung ke format):
-    
-    **1. Analisis Efisiensi:**
-    (Evaluasi apakah pengeluaran ini wajar sesuai scope pekerjaan divisinya. Adakah konsentrasi biaya yang tidak wajar pada servis/proyek tertentu?)
-    
-    **2. Identifikasi Pemborosan (Technical Root Cause):**
-    (Berikan asumsi teknis yang logis berdasarkan jenis servis termahal dan proyeknya. Gunakan istilah teknis AWS seperti EC2, Data Transfer, Storage, dll yang relevan).
-    
-    **3. Rekomendasi Optimasi Actionable:**
-    (Berikan 3 bullet points rekomendasi teknis yang SANGAT spesifik untuk mengoptimalkan proyek dan servis dominan di atas).
-    
-    Gunakan bahasa Indonesia yang profesional, tegas, dan langsung pada intinya (seperti laporan eksekutif).
-    """
+    total_actual_cost = owner_data['line_item_unblended_cost'].sum()
+    total_predicted_cost = owner_data['predicted_cost'].sum()
 
-    # 4. Eksekusi Panggilan API dengan animasi loading
-    with st.spinner(f"🤖 Mengontak {selected_model_ui} untuk menganalisis data {selected_owner}..."):
+    cost_difference = total_actual_cost - total_predicted_cost
+
+    if total_predicted_cost != 0:
+        deviation_percentage = (
+            cost_difference / total_predicted_cost
+        ) * 100
+    else:
+        deviation_percentage = 0.0
+
+    # 3. Menyusun konteks biaya utama
+    top_projects_actual = (
+        owner_data
+        .groupby('resource_tags_user_project')[
+            'line_item_unblended_cost'
+        ]
+        .sum()
+        .sort_values(ascending=False)
+        .head(3)
+    )
+
+    top_services_actual = (
+        owner_data
+        .groupby('product_product_family')[
+            'line_item_unblended_cost'
+        ]
+        .sum()
+        .sort_values(ascending=False)
+        .head(3)
+    )
+
+    top_operations_actual = (
+        owner_data
+        .groupby('line_item_operation')[
+            'line_item_unblended_cost'
+        ]
+        .sum()
+        .sort_values(ascending=False)
+        .head(3)
+    )
+
+    project_deviation = build_deviation_summary(
+        owner_data,
+        'resource_tags_user_project'
+    )
+
+    service_deviation = build_deviation_summary(
+        owner_data,
+        'product_product_family'
+    )
+
+    top_projects_text = format_currency_list(top_projects_actual)
+    top_services_text = format_currency_list(top_services_actual)
+    top_operations_text = format_currency_list(top_operations_actual)
+
+    project_deviation_text = format_deviation_list(
+        project_deviation,
+        'resource_tags_user_project'
+    )
+
+    service_deviation_text = format_deviation_list(
+        service_deviation,
+        'product_product_family'
+    )
+
+    # 4. Menyusun prompt yang terikat pada data
+    system_instruction = """
+Anda berperan sebagai analis Cloud FinOps yang membantu pengguna
+memahami data biaya cloud AWS.
+
+Gunakan hanya informasi yang tersedia pada konteks data.
+Jangan mengarang angka, layanan, proyek, atau kondisi teknis
+yang tidak disebutkan pada konteks.
+
+Selisih antara biaya aktual dan estimasi Random Forest hanya
+merupakan indikasi deviasi terhadap estimasi model, bukan bukti
+pasti adanya pemborosan atau akar penyebab teknis.
+
+Gunakan frasa seperti "indikasi", "perlu ditinjau", atau
+"perlu divalidasi oleh tim teknis" ketika memberikan interpretasi.
+Jangan menyatakan keputusan otomatis atau kepastian tanpa bukti.
+"""
+
+    analysis_prompt = f"""
+Buat AI Insight dan Evaluasi Efisiensi Biaya Cloud AWS untuk divisi
+{selected_owner} pada periode Februari 2025.
+
+KONTEKS DIVISI
+- Nama divisi: {info['full_name']}
+- Deskripsi: {info['description']}
+- Ruang lingkup kerja: {info['scope']}
+- Produk AWS yang dikelola: {', '.join(info['products_handled'])}
+
+RINGKASAN BIAYA
+- Total biaya aktual: ${total_actual_cost:,.2f}
+- Total estimasi model Random Forest: ${total_predicted_cost:,.2f}
+- Selisih aktual terhadap estimasi: ${cost_difference:,.2f}
+- Persentase deviasi terhadap estimasi: {deviation_percentage:,.2f}%
+
+TIGA PROYEK DENGAN BIAYA AKTUAL TERBESAR
+{top_projects_text}
+
+TIGA LAYANAN AWS DENGAN BIAYA AKTUAL TERBESAR
+{top_services_text}
+
+TIGA OPERASI AWS DENGAN BIAYA AKTUAL TERBESAR
+{top_operations_text}
+
+TIGA PROYEK DENGAN DEVIASI TERBESAR
+{project_deviation_text}
+
+TIGA LAYANAN AWS DENGAN DEVIASI TERBESAR
+{service_deviation_text}
+
+Berikan respons dalam Bahasa Indonesia menggunakan format berikut:
+
+## 1. Ringkasan Kondisi Biaya
+Jelaskan secara singkat kondisi biaya aktual dibandingkan dengan
+estimasi model Random Forest.
+
+## 2. Indikasi Area yang Perlu Ditinjau
+Jelaskan maksimal tiga area yang perlu diperhatikan berdasarkan
+biaya dominan atau deviasi aktual terhadap estimasi.
+Sebutkan proyek, layanan, atau operasi AWS yang relevan dari data.
+
+## 3. Rekomendasi Awal Peluang Optimasi
+Berikan tepat tiga rekomendasi dalam bullet point.
+Setiap rekomendasi harus:
+- terkait dengan data yang tersedia;
+- menjelaskan tindakan teknis atau operasional awal;
+- menyebutkan alasan berdasarkan layanan, proyek, atau operasi dominan;
+- diakhiri dengan kebutuhan validasi oleh tim teknis.
+
+Jangan menyatakan bahwa suatu komponen pasti boros atau pasti menjadi
+akar masalah apabila bukti pada konteks tidak mencukupi.
+"""
+
+    full_prompt = f"{system_instruction}\n\n{analysis_prompt}"
+
+    # 5. Pemanggilan API LLM
+    with st.spinner(
+            f"Menghasilkan insight menggunakan {selected_model_ui}..."
+    ):
         try:
-            final_insight = ""
-
-            # --- JIKA MEMILIH GEMINI ---
             if api_provider == "gemini":
-                # Menggunakan syntax SDK Baru: client.models.generate_content
                 response = client.models.generate_content(
                     model=api_model_name,
-                    contents=the_prompt
+                    contents=full_prompt
                 )
+
                 final_insight = response.text
 
-            # --- JIKA MEMILIH MINIMAX (OPENROUTER) ---
             elif api_provider == "openrouter":
-                response = requests.post(
-                    url="https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {OR_API_KEY}",
-                        "Content-Type": "application/json",
-                    },
-                    data=json.dumps({
-                        "model": api_model_name,
-                        "messages": [{"role": "user", "content": the_prompt}],
-                        "reasoning": {"enabled": True}
-                    }),
-                    verify=False # Tetap dipertahankan untuk mengatasi error SSL di DataSpell
+                final_insight = call_openrouter_model(
+                    model_name=api_model_name,
+                    system_instruction=system_instruction,
+                    analysis_prompt=analysis_prompt
                 )
 
-                if response.status_code == 200:
-                    response_json = response.json()
-                    final_insight = response_json['choices'][0]['message']['content']
-                else:
-                    st.error(f"❌ Gagal memanggil API Minimax. Status Code: {response.status_code}\nPesan: {response.text}")
-                    st.stop() # Hentikan proses jika gagal
-
-            # 5. Tampilkan Hasilnya
-            if final_insight:
+            if not final_insight:
+                st.warning(
+                    "Model tidak menghasilkan narasi insight. "
+                    "Silakan coba kembali."
+                )
+            else:
+                st.subheader("Hasil AI Insight")
                 st.info(final_insight)
-                st.toast('Insight berhasil di-generate!', icon='✅')
 
-        except Exception as e:
-            st.error(f"❌ Terjadi kesalahan pada sistem pemanggilan AI: {e}")
+                st.toast(
+                    "Insight berhasil dihasilkan.",
+                    icon="✅"
+                )
 
-        # Catatan Khusus Error SSL pada Gemini:
-        # Jika Gemini juga terkena Error SSL (CERTIFICATE_VERIFY_FAILED),
-        # kamu wajib melakukan update certifi di terminal: pip install --upgrade certifi
+        except requests.exceptions.Timeout:
+            st.error(
+                "Waktu pemanggilan model habis. "
+                "Silakan coba kembali atau gunakan model lain."
+            )
+
+        except requests.exceptions.RequestException as error:
+            st.error(
+                "Terjadi kegagalan saat menghubungi OpenRouter: "
+                f"{error}"
+            )
+
+        except Exception as error:
+            st.error(
+                "Terjadi kesalahan saat menghasilkan insight: "
+                f"{error}"
+            )
